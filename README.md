@@ -1,68 +1,168 @@
-# NeuroBloom
+# 🧠 NeuroBloom
 
-Vizuálne bohatá experimentálna stránka postavená na Reacte, Three.js a Tailwind CSS, ktorá zobrazuje rast umelej neurónovej siete ako keby bola živým organizmom. Každý neurón pulzuje, dýcha a vytvára synaptické spojenia reagujúce na vstupné podnety.
+**Interaktívna vizualizácia živej neurónovej siete** – simulácia AI, ktorá rastie, učí sa, starne a degraduje v reálnom čase. Postavené na React, Three.js a TypeScript.
+
+![NeuroBloom Preview](https://img.shields.io/badge/status-live-brightgreen) ![React](https://img.shields.io/badge/React-18-blue) ![Three.js](https://img.shields.io/badge/Three.js-WebGL-red)
+
+---
 
 ## 🚀 Rýchly štart
 
-1. Nainštalujte závislosti:
+```bash
+# Inštalácia
+npm install
 
-   ```bash
-   npm install
-   ```
+# Spustenie dev servera
+npm run dev
 
-2. Spustite dev server:
+# Build pre produkciu
+npm run build
+```
 
-   ```bash
-   npm run dev
-   ```
+Otvor prehliadač na `http://localhost:5173`
 
-3. Otvorte prehliadač na adrese `http://localhost:5173`.
+---
+
+## 🎮 Ako to funguje
+
+### 1. **Začni s jedným neurónom**
+   - Pri spustení máš jeden input neurón
+   - Klikni na tlačidlá INPUT, HIDDEN alebo OUTPUT pre pridanie neurónov
+   - Neuróny sa automaticky prepoja s existujúcimi
+
+### 2. **Trénovanie siete**
+   - Stlač **"Spustiť tréning"** a sleduj ako sa sieť učí
+   - Váhy spojení sa menia, neuróny pulzujú podľa aktivácie
+   - Sleduj štatistiky: presnosť, zdravie, epochy
+
+### 3. **Sleduj degradáciu**
+   - Neuróny časom starnú (age rastie)
+   - Zdravie klesá, farba sa mení na červenú
+   - Overtraining = príliš veľa trénovania
+   - Undertraining = nedostatočné učenie
+
+---
 
 ## 📁 Štruktúra projektu
 
 ```
 src/
 ├── components/
-│   ├── NeuroBloomScene.tsx    # Three.js 3D scéna s neurónovou sieťou
-│   ├── Hero.tsx                # Hlavná hero sekcia
-│   ├── InfoSection.tsx         # Info sekcie s popismi
-│   ├── NetworkStats.tsx        # Štatistiky siete
-│   └── Footer.tsx              # Päta stránky
-├── styles/
-│   └── global.css              # Globálne Tailwind štýly
-└── App.tsx                     # Hlavný komponent aplikácie
+│   ├── three/                    # 3D Three.js komponenty
+│   │   ├── Neuron.tsx           # Vizualizácia jedného neurónu
+│   │   ├── Connection.tsx       # Spojenia medzi neurónmi
+│   │   └── NeuralNetworkScene.tsx # Hlavná 3D scéna
+│   └── ui/                       # UI komponenty
+│       ├── ControlPanel.tsx     # Ovládacie prvky
+│       └── StatsDisplay.tsx     # Štatistiky siete
+├── simulation/                   # Simulačná logika
+│   ├── types.ts                 # TypeScript typy
+│   └── neuralNetwork.ts         # AI algoritmy
+├── hooks/
+│   └── useNeuralNetwork.ts      # React hook pre správu siete
+└── styles/
+    └── global.css               # Tailwind štýly
 ```
 
-## 🎨 Technológie
+---
 
-- **React 18** - Moderný UI framework
-- **Three.js** - 3D WebGL grafika
-- **React Three Fiber** - React renderer pre Three.js
-- **React Three Drei** - Pomocné komponenty pre R3F
-- **TypeScript** - Type-safe JavaScript
-- **Tailwind CSS** - Utility-first CSS framework
-- **Vite** - Bleskovo rýchly build tool
+## 🎨 Vizuálne featury
 
-## 🧠 Dizajnové princípy
+### Neuróny
+- **Pulzovanie** podľa aktivácie (0-1)
+- **Farba** podľa typu:
+  - 🔵 Cyan = Input neuróny
+  - 🟣 Purple = Hidden neuróny
+  - 🔴 Pink = Output neuróny
+- **Zdravie** - červená farba = degradácia
+- **Glow efekt** pri vysokej aktivácii
 
-- **Organický rast:** Neuróny sa pridávajú postupne, menia farbu podľa aktivácie a pulzujú podobne ako živé organizmy
-- **Synaptické väzby:** Spojenia využívajú jemný shader s gradientom a priehľadnosťou, ktorý reaguje na aktivitu
-- **Atmosféra:** Tmavé pozadie, neonové akcenty (cyan, purple, pink) a jemné prechody podporujú futuristickú estetiku
-- **Responzívny dizajn:** Optimalizované pre desktop aj mobilné zariadenia
+### Spojenia
+- **Modré** = pozitívna váha (+)
+- **Červené** = negatívna váha (-)
+- **Opacity** = sila spojenia
+- **Animované** podľa aktivácie
 
-## 🎯 Features
+### Scéna
+- Auto-rotácia kamery
+- OrbitControls (drag, zoom, pan)
+- Dynamické osvetlenie
+- Gradient pozadie
 
-- ✨ 420+ dynamických neurónov
-- 🔗 260+ synaptických spojení
-- 🌊 Dýchacia animácia celej siete
-- 🎨 Gradientové farby reagujúce na aktiváciu
-- 📊 Real-time štatistiky siete
-- 🎮 Interaktívna 3D scéna s OrbitControls
+---
 
-## 💡 Ďalšie nápady
+## � Simulované procesy
 
-- Prepojiť simuláciu s reálnymi dátami alebo interaktívnymi vstupmi
-- Pridať panel s možnosťami ovládania rýchlosti rastu a intenzity aktivácie
-- Exportovať animácie alebo momentky siete ako obrázky
-- Pridať zvukové efekty reagujúce na aktiváciu neurónov
-- Implementovať rôzne architektúry neurónových sietí (CNN, RNN, Transformer)
+### Učenie sa (Training)
+```typescript
+- Forward propagation cez sieť
+- Aktivačná funkcia: Sigmoid
+- Backpropagation: Update váh
+- Learning rate: 0.1
+- Epochy sa počítajú v reálnom čase
+```
+
+### Starnutie (Aging)
+```typescript
+- Každú sekundu: age += 1
+- Zdravie klesá po 5 minútach
+- health = f(age, trainingCount)
+- Farba interpoluje do červenej
+```
+
+### Overtraining / Undertraining
+```typescript
+- Overtraining: trainingAccuracy - validationAccuracy > 15%
+- Undertraining: trainingAccuracy < 70% po 50 epochách
+- Vizuálne upozornenia v UI
+```
+
+---
+
+## 🛠️ Technológie
+
+| Technológia | Použitie |
+|-------------|----------|
+| **React 18** | UI framework |
+| **TypeScript** | Type safety |
+| **Three.js** | 3D grafika (WebGL) |
+| **React Three Fiber** | React renderer pre Three.js |
+| **React Three Drei** | Helper komponenty |
+| **Tailwind CSS** | Styling |
+| **Vite** | Build tool |
+
+---
+
+## 📊 Metriky siete
+
+- **Total Neurons** - počet neurónov v sieti
+- **Total Connections** - počet synaptických spojení
+- **Average Activation** - priemerná aktivácia (0-100%)
+- **Average Health** - priemerné zdravie (0-100%)
+- **Training Epochs** - počet tréningových epoch
+- **Accuracy** - presnosť siete (0-100%)
+
+---
+
+## 🎯 Budúce vylepšenia
+
+- [ ] Import/export architektúr siete
+- [ ] Vlastné tréningovacie dáta
+- [ ] Rôzne aktivačné funkcie (ReLU, Tanh, Softmax)
+- [ ] Vizualizácia gradientov
+- [ ] Zvukové efekty pri aktivácii
+- [ ] Rôzne architektúry (CNN, RNN, Transformer)
+- [ ] Uloženie stavu do localStorage
+- [ ] Video export animácie
+
+---
+
+## 📝 Licencia
+
+MIT License - Vytvorené pre vzdelávacie účely
+
+---
+
+**Autor:** Dospalko  
+**Rok:** 2025  
+**Web:** [github.com/Dospalko/neurobloom](https://github.com/Dospalko/neurobloom)
