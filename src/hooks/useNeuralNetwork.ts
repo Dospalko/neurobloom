@@ -36,12 +36,12 @@ export const useNeuralNetwork = () => {
   // Pridanie nového neurónu
   const addNeuron = useCallback(
     (type: "input" | "hidden" | "output" = "hidden") => {
-      const position = randomSpherePosition(3 + neurons.length * 0.1);
+      const position = randomSpherePosition(3 + neurons.length * 0.05);
       const newNeuron = createNeuron(position, type);
 
       // Automaticky prepoj s náhodnými existujúcimi neurónmi
       const connections: Connection[] = [];
-      const numConnections = Math.min(3, neurons.length);
+      const numConnections = Math.min(2, neurons.length); // Menej spojení = rýchlejšie
 
       for (let i = 0; i < numConnections; i++) {
         const randomNeuron = neurons[Math.floor(Math.random() * neurons.length)];
@@ -52,6 +52,36 @@ export const useNeuralNetwork = () => {
 
       newNeuron.connections = connections;
       setNeurons((prev) => [...prev, newNeuron]);
+    },
+    [neurons]
+  );
+
+  // Bulk pridanie neurónov (rýchle)
+  const addMultipleNeurons = useCallback(
+    (count: number, type: "input" | "hidden" | "output" = "hidden") => {
+      const newNeurons: Neuron[] = [];
+      
+      for (let i = 0; i < count; i++) {
+        const position = randomSpherePosition(3 + (neurons.length + i) * 0.05);
+        const neuron = createNeuron(position, type);
+        
+        // Prepoj s existujúcimi neurónmi
+        const connections: Connection[] = [];
+        const allNeurons = [...neurons, ...newNeurons];
+        const numConnections = Math.min(2, allNeurons.length);
+        
+        for (let j = 0; j < numConnections; j++) {
+          const randomNeuron = allNeurons[Math.floor(Math.random() * allNeurons.length)];
+          if (randomNeuron) {
+            connections.push(createConnection(randomNeuron.id, neuron.id));
+          }
+        }
+        
+        neuron.connections = connections;
+        newNeurons.push(neuron);
+      }
+      
+      setNeurons((prev) => [...prev, ...newNeurons]);
     },
     [neurons]
   );
@@ -95,9 +125,20 @@ export const useNeuralNetwork = () => {
 
     trainingInterval.current = setInterval(() => {
       setNeurons((prev) => {
+        // Optimalizácia - použij batch update
         const updated = prev.map((neuron) => {
           // Simulácia aktivácie
           const inputs = new Map<string, number>();
+          
+          // Len ak má spojenia
+          if (neuron.connections.length === 0) {
+            return {
+              ...neuron,
+              activation: Math.random() * 0.5, // Náhodná aktivácia pre vstupné
+              trainingCount: neuron.trainingCount + 1,
+            };
+          }
+
           neuron.connections.forEach((conn) => {
             const sourceNeuron = prev.find((n) => n.id === conn.from);
             if (sourceNeuron) {
@@ -107,9 +148,9 @@ export const useNeuralNetwork = () => {
 
           const newActivation = activateNeuron(neuron, inputs);
 
-          // Update weights
+          // Update weights - jednoduchšie výpočty
           const updatedConnections = neuron.connections.map((conn) => {
-            const error = Math.random() * 0.2 - 0.1; // Simulovaná chyba
+            const error = (Math.random() - 0.5) * 0.1; // Menšia chyba
             const newWeight = updateConnectionWeight(
               conn,
               error,
@@ -141,14 +182,14 @@ export const useNeuralNetwork = () => {
       setStats((prev) => ({
         ...prev,
         trainingEpochs: prev.trainingEpochs + 1,
-        accuracy: Math.min(0.99, prev.accuracy + 0.001),
+        accuracy: Math.min(0.99, prev.accuracy + 0.002), // Rýchlejší progres
         ...detectTrainingIssues(
-          Math.min(0.99, prev.accuracy + 0.001),
+          Math.min(0.99, prev.accuracy + 0.002),
           Math.min(0.95, prev.accuracy),
           prev.trainingEpochs + 1
         ),
       }));
-    }, 100);
+    }, 50); // Rýchlejší interval (50ms namiesto 100ms)
   }, []);
 
   // Zastavenie trénovania
@@ -230,6 +271,7 @@ export const useNeuralNetwork = () => {
     mode,
     stats,
     addNeuron,
+    addMultipleNeurons, // Nová funkcia
     removeNeuron,
     connectNeurons,
     startTraining,

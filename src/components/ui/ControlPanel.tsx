@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { SimulationMode } from "../../simulation/types";
 
 interface ControlPanelProps {
   mode: SimulationMode;
   onAddNeuron: (type: "input" | "hidden" | "output") => void;
+  onAddMultiple?: (count: number, type: "input" | "hidden" | "output") => void;
   onStartTraining: () => void;
   onStopTraining: () => void;
   onReset: () => void;
@@ -12,14 +14,54 @@ interface ControlPanelProps {
 const ControlPanel = ({
   mode,
   onAddNeuron,
+  onAddMultiple,
   onStartTraining,
   onStopTraining,
   onReset,
   disabled = false,
 }: ControlPanelProps) => {
+  const [bulkCount, setBulkCount] = useState(5);
+  const [selectedType, setSelectedType] = useState<"input" | "hidden" | "output">("hidden");
+
   return (
     <div className="glass-effect rounded-2xl p-6 space-y-6">
       <h3 className="text-xl font-bold gradient-text">Ovládanie</h3>
+      
+      {/* Bulk pridávanie neurónov */}
+      {onAddMultiple && (
+        <div className="space-y-3">
+          <p className="text-sm text-gray-400 uppercase tracking-wide">Rýchle pridanie</p>
+          
+          <div className="flex gap-2">
+            <input
+              type="number"
+              min="1"
+              max="50"
+              value={bulkCount}
+              onChange={(e) => setBulkCount(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
+              className="w-20 px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:border-neuro-cyan"
+            />
+            
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value as any)}
+              className="flex-1 px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:border-neuro-cyan"
+            >
+              <option value="input">Input</option>
+              <option value="hidden">Hidden</option>
+              <option value="output">Output</option>
+            </select>
+            
+            <button
+              onClick={() => onAddMultiple(bulkCount, selectedType)}
+              disabled={disabled}
+              className="px-4 py-2 bg-gradient-to-r from-neuro-cyan to-neuro-purple rounded-lg font-semibold transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              + {bulkCount}
+            </button>
+          </div>
+        </div>
+      )}
       
       {/* Pridávanie neurónov */}
       <div className="space-y-3">

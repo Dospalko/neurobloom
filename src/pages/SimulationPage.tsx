@@ -13,6 +13,7 @@ const SimulationPage = () => {
     mode,
     stats,
     addNeuron,
+    addMultipleNeurons,
     startTraining,
     stopTraining,
     resetNetwork,
@@ -66,6 +67,7 @@ const SimulationPage = () => {
             <ControlPanel
               mode={mode}
               onAddNeuron={addNeuron}
+              onAddMultiple={addMultipleNeurons}
               onStartTraining={startTraining}
               onStopTraining={stopTraining}
               onReset={resetNetwork}
