@@ -1,8 +1,8 @@
 # NeuroBloom
 
-Vizualno bohatá experimentálna stránka postavená na Reacte a Three.js, ktorá zobrazuje rast umelej neurónovej siete ako keby bola živým organizmom. Každý neurón pulzuje, dýcha a vytvára synaptické spojenia reagujúce na vstupné podnety.
+Vizuálne bohatá experimentálna stránka postavená na Reacte, Three.js a Tailwind CSS, ktorá zobrazuje rast umelej neurónovej siete ako keby bola živým organizmom. Každý neurón pulzuje, dýcha a vytvára synaptické spojenia reagujúce na vstupné podnety.
 
-## Rýchly štart
+## 🚀 Rýchly štart
 
 1. Nainštalujte závislosti:
 
@@ -18,20 +18,51 @@ Vizualno bohatá experimentálna stránka postavená na Reacte a Three.js, ktor�
 
 3. Otvorte prehliadač na adrese `http://localhost:5173`.
 
-## Architektúra
+## 📁 Štruktúra projektu
 
-- `src/App.tsx` – rozloženie stránky, hero sekcia, sprievodné texty.
-- `src/components/NeuroBloomScene.tsx` – Three.js scéna s rastúcou a dýchajúcou neurónovou sieťou.
-- `src/styles/` – globálne štýly a dizajn pre jednotlivé sekcie.
+```
+src/
+├── components/
+│   ├── NeuroBloomScene.tsx    # Three.js 3D scéna s neurónovou sieťou
+│   ├── Hero.tsx                # Hlavná hero sekcia
+│   ├── InfoSection.tsx         # Info sekcie s popismi
+│   ├── NetworkStats.tsx        # Štatistiky siete
+│   └── Footer.tsx              # Päta stránky
+├── styles/
+│   └── global.css              # Globálne Tailwind štýly
+└── App.tsx                     # Hlavný komponent aplikácie
+```
 
-## Dizajnové princípy
+## 🎨 Technológie
 
-- **Organický rast:** neuróny sa pridávajú postupne, menia farbu podľa aktivácie a pulzujú podobne ako živé organizmy.
-- **Synaptické väzby:** spojenia využívajú jemný shader s gradientom a priehľadnosťou, ktorý reaguje na aktivitu.
-- **Atmosféra:** tmavé pozadie, neonové akcenty a jemné prechody podporujú futuristickú estetiku.
+- **React 18** - Moderný UI framework
+- **Three.js** - 3D WebGL grafika
+- **React Three Fiber** - React renderer pre Three.js
+- **React Three Drei** - Pomocné komponenty pre R3F
+- **TypeScript** - Type-safe JavaScript
+- **Tailwind CSS** - Utility-first CSS framework
+- **Vite** - Bleskovo rýchly build tool
 
-## Ďalšie nápady
+## 🧠 Dizajnové princípy
 
-- Prepojiť simuláciu s reálnymi dátami alebo interaktívnymi vstupmi.
-- Pridať panel s možnosťami ovládania rýchlosti rastu a intenzity aktivácie.
-- Exportovať animácie alebo momentky siete ako obrázky.
+- **Organický rast:** Neuróny sa pridávajú postupne, menia farbu podľa aktivácie a pulzujú podobne ako živé organizmy
+- **Synaptické väzby:** Spojenia využívajú jemný shader s gradientom a priehľadnosťou, ktorý reaguje na aktivitu
+- **Atmosféra:** Tmavé pozadie, neonové akcenty (cyan, purple, pink) a jemné prechody podporujú futuristickú estetiku
+- **Responzívny dizajn:** Optimalizované pre desktop aj mobilné zariadenia
+
+## 🎯 Features
+
+- ✨ 420+ dynamických neurónov
+- 🔗 260+ synaptických spojení
+- 🌊 Dýchacia animácia celej siete
+- 🎨 Gradientové farby reagujúce na aktiváciu
+- 📊 Real-time štatistiky siete
+- 🎮 Interaktívna 3D scéna s OrbitControls
+
+## 💡 Ďalšie nápady
+
+- Prepojiť simuláciu s reálnymi dátami alebo interaktívnymi vstupmi
+- Pridať panel s možnosťami ovládania rýchlosti rastu a intenzity aktivácie
+- Exportovať animácie alebo momentky siete ako obrázky
+- Pridať zvukové efekty reagujúce na aktiváciu neurónov
+- Implementovať rôzne architektúry neurónových sietí (CNN, RNN, Transformer)

@@ -32,6 +32,14 @@
   }
 }
 
+@layer components {
+  .scene-caption {
+    @apply text-xs uppercase tracking-[0.5em] text-purple-200/40;
+    @apply bg-black/60 px-5 py-3 rounded-full;
+    @apply border border-purple-400/20 backdrop-blur-md;
+  }
+}
+
 @layer utilities {
   .gradient-text {
     @apply bg-gradient-to-r from-neuro-cyan via-neuro-purple to-neuro-pink;
@@ -48,6 +56,18 @@
 
   .glow-purple {
     box-shadow: 0 0 20px rgba(160, 109, 255, 0.3);
+  }
+  
+  .delay-75 {
+    animation-delay: 75ms;
+  }
+  
+  .delay-100 {
+    animation-delay: 100ms;
+  }
+  
+  .delay-150 {
+    animation-delay: 150ms;
   }
 }
 
