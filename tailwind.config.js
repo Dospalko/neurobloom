@@ -8,9 +8,9 @@ export default {
     extend: {
       colors: {
         'neuro-dark': '#0F0F0F',
-        'neuro-blue': '#4A9EFF',
-        'neuro-purple': '#9B6AFF',
-        'neuro-green': '#5FE88C',
+        'neuro-blue': '#00D4FF',      // Jasnejšia modrá
+        'neuro-purple': '#B565FF',    // Jasnejšia fialová  
+        'neuro-green': '#00FF88',     // Jasnejšia zelená
         'neuro-pink': '#FF6B9D',
         'neuro-orange': '#FFB74A',
       },

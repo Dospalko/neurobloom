@@ -16,7 +16,7 @@ import {
   detectTrainingIssues,
 } from "../simulation/neuralNetwork";
 import { AlgorithmRunner } from "../algorithms/algorithmRunner";
-import { AlgorithmType } from "../algorithms/types";
+import { AlgorithmType, ALGORITHMS } from "../algorithms/types";
 
 export const useNeuralNetwork = () => {
   const [neurons, setNeurons] = useState<Neuron[]>([]);
@@ -37,6 +37,9 @@ export const useNeuralNetwork = () => {
   const algorithmRunner = useRef<AlgorithmRunner | null>(null);
   const [isAlgorithmRunning, setIsAlgorithmRunning] = useState(false);
   const [currentAlgorithm, setCurrentAlgorithm] = useState<AlgorithmType | null>(null);
+  const [algorithmProgress, setAlgorithmProgress] = useState(0);
+  const [neuronsCreated, setNeuronsCreated] = useState(0);
+  const algorithmStartTime = useRef<number>(0);
 
   // Pridanie nového neurónu
   const addNeuron = useCallback(
@@ -229,7 +232,7 @@ export const useNeuralNetwork = () => {
     setNeurons([firstNeuron]);
   }, []);
 
-  // Spustenie algoritmu
+  // Spustenie algoritmu s postupným pridávaním neurónov
   const runAlgorithm = useCallback((algorithmType: AlgorithmType) => {
     // Zastav trénovanie ak beží
     setMode("idle");
@@ -238,14 +241,40 @@ export const useNeuralNetwork = () => {
       trainingInterval.current = null;
     }
     
-    // Vytvor neuróny ak ich je málo (menej ako 30)
-    const minNeurons = 30;
+    setIsAlgorithmRunning(true);
+    setCurrentAlgorithm(algorithmType);
+    setAlgorithmProgress(0);
+    setNeuronsCreated(0);
+    algorithmStartTime.current = Date.now();
+    
+    // Vytvor neuróny ak ich je málo (menej ako 40)
+    const minNeurons = 40;
     if (neurons.length < minNeurons) {
       const neuronsToAdd = minNeurons - neurons.length;
       const newNeurons: Neuron[] = [];
       
-      // Vytvor neuróny v sférickom usporiadaní
-      for (let i = 0; i < neuronsToAdd; i++) {
+      // POSTUPNÉ pridávanie neurónov s animáciou
+      let addedCount = 0;
+      const addNeuronInterval = setInterval(() => {
+        if (addedCount >= neuronsToAdd) {
+          clearInterval(addNeuronInterval);
+          
+          // Teraz spusti algoritmus
+          setTimeout(() => {
+            const updatedNeurons = [...neurons, ...newNeurons];
+            if (!algorithmRunner.current) {
+              algorithmRunner.current = new AlgorithmRunner(updatedNeurons);
+            } else {
+              algorithmRunner.current.updateNeurons(updatedNeurons);
+            }
+            
+            algorithmRunner.current.start(algorithmType);
+            setNeuronsCreated(minNeurons);
+          }, 200);
+          return;
+        }
+        
+        const i = addedCount;
         const phi = Math.acos(-1 + (2 * (neurons.length + i)) / minNeurons);
         const theta = Math.sqrt(minNeurons * Math.PI) * phi;
         
@@ -282,25 +311,15 @@ export const useNeuralNetwork = () => {
         
         neuron.connections = connections;
         newNeurons.push(neuron);
-      }
-      
-      setNeurons(prev => [...prev, ...newNeurons]);
-      
-      // Počkaj kým sa neuróny pridajú
-      setTimeout(() => {
-        const updatedNeurons = [...neurons, ...newNeurons];
-        if (!algorithmRunner.current) {
-          algorithmRunner.current = new AlgorithmRunner(updatedNeurons);
-        } else {
-          algorithmRunner.current.updateNeurons(updatedNeurons);
-        }
         
-        algorithmRunner.current.start(algorithmType);
-        setIsAlgorithmRunning(true);
-        setCurrentAlgorithm(algorithmType);
-      }, 100);
+        setNeurons(prev => [...prev, neuron]);
+        setNeuronsCreated(prev => prev + 1);
+        addedCount++;
+      }, 50); // Pridávaj každých 50ms
+      
     } else {
       // Už máme dosť neurónov
+      setNeuronsCreated(neurons.length);
       if (!algorithmRunner.current) {
         algorithmRunner.current = new AlgorithmRunner(neurons);
       } else {
@@ -308,8 +327,6 @@ export const useNeuralNetwork = () => {
       }
       
       algorithmRunner.current.start(algorithmType);
-      setIsAlgorithmRunning(true);
-      setCurrentAlgorithm(algorithmType);
     }
   }, [neurons]);
 
@@ -322,18 +339,29 @@ export const useNeuralNetwork = () => {
     setCurrentAlgorithm(null);
   }, []);
 
-  // Update algoritmov v animation loop
+  // Update algoritmov v animation loop + progress tracking
   useEffect(() => {
     if (isAlgorithmRunning && algorithmRunner.current) {
       const intervalId = setInterval(() => {
         algorithmRunner.current?.update();
+        
+        // Update progress
+        if (algorithmStartTime.current > 0 && currentAlgorithm) {
+          const algorithm = ALGORITHMS.find(a => a.id === currentAlgorithm);
+          if (algorithm) {
+            const elapsed = (Date.now() - algorithmStartTime.current) / 1000;
+            const progress = Math.min(1, elapsed / algorithm.duration);
+            setAlgorithmProgress(progress);
+          }
+        }
+        
         // Force re-render
         setNeurons(prev => [...prev]);
       }, 16); // ~60fps
 
       return () => clearInterval(intervalId);
     }
-  }, [isAlgorithmRunning]);
+  }, [isAlgorithmRunning, currentAlgorithm]);
 
   // Update štatistík
   useEffect(() => {
@@ -393,5 +421,7 @@ export const useNeuralNetwork = () => {
     stopAlgorithm,
     isAlgorithmRunning,
     currentAlgorithm,
+    algorithmProgress,
+    neuronsCreated,
   };
 };

@@ -73,12 +73,12 @@ const NeuralNetworkScene = ({ neurons, onNeuronClick }: NeuralNetworkSceneProps)
         {/* Gradient pozadie */}
         <GradientBackground />
         
-        {/* Farebné osvetlenie - nie biele! */}
-        <ambientLight intensity={0.6} color="#8899ff" />
-        <pointLight position={[10, 10, 10]} intensity={3} color="#4A9EFF" />
-        <pointLight position={[-10, -10, -10]} intensity={2.5} color="#9B6AFF" />
-        <pointLight position={[0, 15, 0]} intensity={2} color="#5FE88C" />
-        <spotLight position={[0, 0, 20]} intensity={1.5} angle={0.5} penumbra={1} color="#FFB74A" />
+        {/* Jasné farebné osvetlenie */}
+        <ambientLight intensity={0.7} color="#99BBFF" />
+        <pointLight position={[10, 10, 10]} intensity={3.5} color="#00D4FF" />
+        <pointLight position={[-10, -10, -10]} intensity={3} color="#B565FF" />
+        <pointLight position={[0, 15, 0]} intensity={2.5} color="#00FF88" />
+        <spotLight position={[0, 0, 20]} intensity={2} angle={0.5} penumbra={1} color="#FFB74A" />
         
         {/* Hviezdy a trblietavé čiastočky */}
         <Stars radius={100} depth={50} count={800} factor={2} fade speed={0.5} />

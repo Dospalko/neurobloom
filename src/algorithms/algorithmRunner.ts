@@ -93,8 +93,8 @@ export class AlgorithmRunner {
         const activation = 1 - (diff / waveWidth);
         neuron.activation = activation;
         
-        // Mení farbu na modrú keď je vlna na ňom
-        this.setNeuronColor(neuron, '#4A9EFF', activation);
+        // Mení farbu na jasno-modrú keď je vlna na ňom
+        this.setNeuronColor(neuron, '#00D4FF', activation);
       } else {
         neuron.activation *= 0.92; // Fade out
         
@@ -127,11 +127,11 @@ export class AlgorithmRunner {
       
       neuron.activation = activation * expansion;
       
-      // Farebná špirála - prechod z fialovej do zelenej
+      // Farebná špirála - prechod z jasnej fialovej do jasnej zelenej
       const colorPhase = (angle + Math.PI) / (2 * Math.PI); // 0 to 1
       const spiralColor = colorPhase < 0.5 
-        ? new THREE.Color('#9B6AFF').lerp(new THREE.Color('#4A9EFF'), colorPhase * 2)
-        : new THREE.Color('#4A9EFF').lerp(new THREE.Color('#5FE88C'), (colorPhase - 0.5) * 2);
+        ? new THREE.Color('#B565FF').lerp(new THREE.Color('#00D4FF'), colorPhase * 2)
+        : new THREE.Color('#00D4FF').lerp(new THREE.Color('#00FF88'), (colorPhase - 0.5) * 2);
       
       neuron.color.copy(spiralColor).multiplyScalar(0.5 + activation * 0.5);
     });
@@ -151,8 +151,8 @@ export class AlgorithmRunner {
       if (activation > 0 && activation < 1) {
         neuron.activation = Math.sin(activation * Math.PI);
         
-        // Zelená farba pri aktivácii
-        this.setNeuronColor(neuron, '#5FE88C', neuron.activation);
+        // Jasná zelená farba pri aktivácii
+        this.setNeuronColor(neuron, '#00FF88', neuron.activation);
       } else if (activation >= 1) {
         neuron.activation = Math.max(0, 1 - (activation - 1) * 0.5);
         
@@ -179,9 +179,9 @@ export class AlgorithmRunner {
       const localPulse = (Math.sin(elapsed * pulseFrequency * Math.PI + phase) + 1) / 2;
       neuron.activation = localPulse;
       
-      // Pulzujúce farby - striedaj medzi ružovou a fialovou
+      // Pulzujúce farby - striedaj medzi ružovou a jasnou fialovou
       const colorPhase = (Math.sin(elapsed * pulseFrequency * Math.PI * 0.5) + 1) / 2;
-      const pulseColor = new THREE.Color('#FF6B9D').lerp(new THREE.Color('#9B6AFF'), colorPhase);
+      const pulseColor = new THREE.Color('#FF6B9D').lerp(new THREE.Color('#B565FF'), colorPhase);
       
       neuron.color.copy(pulseColor).multiplyScalar(0.5 + localPulse * 0.5);
     });
@@ -209,7 +209,7 @@ export class AlgorithmRunner {
       if (neuron) {
         neuron.activation = 1;
         
-        // Oranžová farba pre aktívny
+        // Jasná oranžová farba pre aktívny
         this.setNeuronColor(neuron, '#FFB74A', 1);
         
         // Aktivuj susedné neuróny s postupným farebným prechodom
@@ -219,8 +219,8 @@ export class AlgorithmRunner {
             const intensity = 1 - (distance / 4);
             other.activation = Math.max(other.activation, intensity * 0.7);
             
-            // Žltá pre susedov
-            this.setNeuronColor(other, '#5FE88C', intensity * 0.6);
+            // Jasná zelená pre susedov
+            this.setNeuronColor(other, '#00FF88', intensity * 0.6);
           }
         });
       }

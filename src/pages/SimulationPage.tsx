@@ -4,6 +4,7 @@ import NeuralNetworkScene from "../components/three/NeuralNetworkScene";
 import ControlPanel from "../components/ui/ControlPanel";
 import StatsDisplay from "../components/ui/StatsDisplay";
 import AlgorithmPanel from "../components/ui/AlgorithmPanel";
+import AlgorithmInfoOverlay from "../components/ui/AlgorithmInfoOverlay";
 import { useNeuralNetwork } from "../hooks/useNeuralNetwork";
 
 const SimulationPage = () => {
@@ -23,6 +24,8 @@ const SimulationPage = () => {
     stopAlgorithm,
     isAlgorithmRunning,
     currentAlgorithm,
+    algorithmProgress,
+    neuronsCreated,
   } = useNeuralNetwork();
 
   useEffect(() => {
@@ -66,8 +69,17 @@ const SimulationPage = () => {
       <main className="relative z-10 px-6 pb-6">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* 3D Scene - zaberie 3 stĺpce */}
-          <div className="lg:col-span-3 h-[600px] glass-effect rounded-2xl overflow-hidden">
+          <div className="lg:col-span-3 h-[600px] glass-effect rounded-2xl overflow-hidden relative">
             <NeuralNetworkScene neurons={neurons} />
+            
+            {/* Algorithm Info Overlay */}
+            <AlgorithmInfoOverlay
+              currentAlgorithm={currentAlgorithm}
+              isRunning={isAlgorithmRunning}
+              progress={algorithmProgress}
+              neuronsCreated={neuronsCreated}
+              totalNeurons={40}
+            />
           </div>
 
           {/* Sidebar - 1 stĺpec */}

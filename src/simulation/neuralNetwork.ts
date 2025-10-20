@@ -6,10 +6,11 @@ export const createNeuron = (
   position: THREE.Vector3,
   type: "input" | "hidden" | "output" = "hidden"
 ): Neuron => {
+  // Výraznejšie, žiarivejšie farby!
   const colorMap = {
-    input: new THREE.Color("#4A9EFF"),
-    hidden: new THREE.Color("#9B6AFF"),
-    output: new THREE.Color("#5FE88C"),
+    input: new THREE.Color("#00D4FF"),    // Jasnejšia modrá
+    hidden: new THREE.Color("#B565FF"),   // Jasnejšia fialová
+    output: new THREE.Color("#00FF88"),   // Jasnejšia zelená
   };
 
   return {
