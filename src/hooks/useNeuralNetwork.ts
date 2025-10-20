@@ -15,6 +15,8 @@ import {
   updateConnectionWeight,
   detectTrainingIssues,
 } from "../simulation/neuralNetwork";
+import { AlgorithmRunner } from "../algorithms/algorithmRunner";
+import { AlgorithmType } from "../algorithms/types";
 
 export const useNeuralNetwork = () => {
   const [neurons, setNeurons] = useState<Neuron[]>([]);
@@ -32,6 +34,9 @@ export const useNeuralNetwork = () => {
 
   const trainingInterval = useRef<NodeJS.Timeout | null>(null);
   const ageInterval = useRef<NodeJS.Timeout | null>(null);
+  const algorithmRunner = useRef<AlgorithmRunner | null>(null);
+  const [isAlgorithmRunning, setIsAlgorithmRunning] = useState(false);
+  const [currentAlgorithm, setCurrentAlgorithm] = useState<AlgorithmType | null>(null);
 
   // Pridanie nového neurónu
   const addNeuron = useCallback(
@@ -224,6 +229,46 @@ export const useNeuralNetwork = () => {
     setNeurons([firstNeuron]);
   }, []);
 
+  // Spustenie algoritmu
+  const runAlgorithm = useCallback((algorithmType: AlgorithmType) => {
+    if (!algorithmRunner.current) {
+      algorithmRunner.current = new AlgorithmRunner(neurons);
+    } else {
+      algorithmRunner.current.updateNeurons(neurons);
+    }
+    
+    algorithmRunner.current.start(algorithmType);
+    setIsAlgorithmRunning(true);
+    setCurrentAlgorithm(algorithmType);
+    setMode("idle"); // Zastav trénovanie ak beží
+    if (trainingInterval.current) {
+      clearInterval(trainingInterval.current);
+      trainingInterval.current = null;
+    }
+  }, [neurons]);
+
+  // Zastavenie algoritmu
+  const stopAlgorithm = useCallback(() => {
+    if (algorithmRunner.current) {
+      algorithmRunner.current.stop();
+    }
+    setIsAlgorithmRunning(false);
+    setCurrentAlgorithm(null);
+  }, []);
+
+  // Update algoritmov v animation loop
+  useEffect(() => {
+    if (isAlgorithmRunning && algorithmRunner.current) {
+      const intervalId = setInterval(() => {
+        algorithmRunner.current?.update();
+        // Force re-render
+        setNeurons(prev => [...prev]);
+      }, 16); // ~60fps
+
+      return () => clearInterval(intervalId);
+    }
+  }, [isAlgorithmRunning]);
+
   // Update štatistík
   useEffect(() => {
     if (neurons.length > 0) {
@@ -271,12 +316,16 @@ export const useNeuralNetwork = () => {
     mode,
     stats,
     addNeuron,
-    addMultipleNeurons, // Nová funkcia
+    addMultipleNeurons,
     removeNeuron,
     connectNeurons,
     startTraining,
     stopTraining,
     resetNetwork,
     initializeNetwork,
+    runAlgorithm,
+    stopAlgorithm,
+    isAlgorithmRunning,
+    currentAlgorithm,
   };
 };

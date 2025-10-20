@@ -11,6 +11,8 @@ export default {
         'neuro-blue': '#4A9EFF',
         'neuro-purple': '#9B6AFF',
         'neuro-green': '#5FE88C',
+        'neuro-pink': '#FF6B9D',
+        'neuro-orange': '#FFB74A',
       },
       fontFamily: {
         'sans': ['Orbitron', 'system-ui', 'sans-serif'],
@@ -20,6 +22,8 @@ export default {
         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'float': 'float 6s ease-in-out infinite',
         'glow': 'glow 2s ease-in-out infinite',
+        'delay-75': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite 75ms',
+        'delay-150': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite 150ms',
       },
       keyframes: {
         float: {

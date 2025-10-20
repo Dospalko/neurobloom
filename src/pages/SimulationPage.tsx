@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import NeuralNetworkScene from "../components/three/NeuralNetworkScene";
 import ControlPanel from "../components/ui/ControlPanel";
 import StatsDisplay from "../components/ui/StatsDisplay";
+import AlgorithmPanel from "../components/ui/AlgorithmPanel";
 import { useNeuralNetwork } from "../hooks/useNeuralNetwork";
 
 const SimulationPage = () => {
@@ -18,6 +19,10 @@ const SimulationPage = () => {
     stopTraining,
     resetNetwork,
     initializeNetwork,
+    runAlgorithm,
+    stopAlgorithm,
+    isAlgorithmRunning,
+    currentAlgorithm,
   } = useNeuralNetwork();
 
   useEffect(() => {
@@ -67,6 +72,13 @@ const SimulationPage = () => {
 
           {/* Sidebar - 1 stĺpec */}
           <div className="space-y-6">
+            <AlgorithmPanel
+              onRunAlgorithm={runAlgorithm}
+              onStopAlgorithm={stopAlgorithm}
+              isRunning={isAlgorithmRunning}
+              currentAlgorithm={currentAlgorithm}
+            />
+            
             <ControlPanel
               mode={mode}
               onAddNeuron={addNeuron}
@@ -74,7 +86,7 @@ const SimulationPage = () => {
               onStartTraining={startTraining}
               onStopTraining={stopTraining}
               onReset={resetNetwork}
-              disabled={false}
+              disabled={isAlgorithmRunning}
             />
             
             <StatsDisplay stats={stats} />
