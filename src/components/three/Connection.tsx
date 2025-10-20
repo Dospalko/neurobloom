@@ -28,16 +28,19 @@ const Connection = ({ connection, neurons }: ConnectionProps) => {
     positions.setXYZ(1, toNeuron.position.x, toNeuron.position.y, toNeuron.position.z);
     positions.needsUpdate = true;
 
-    // Väčšia viditeľnosť - vyššia základná opacity
+    // Plynulé zmeny opacity
     const material = lineRef.current.material as THREE.LineBasicMaterial;
     const avgActivation = (fromNeuron.activation + toNeuron.activation) / 2;
-    material.opacity = 0.4 + avgActivation * connection.strength * 0.5; // Svetlejšie!
+    
+    material.opacity = 0.3 + avgActivation * connection.strength * 0.5;
 
-    // Svetlejšie farby pre lepšiu viditeľnosť
-    const color = connection.weight > 0 
-      ? new THREE.Color("#6FB5FF") // Svetlejšia modrá
-      : new THREE.Color("#B589FF"); // Svetlejšia fialová
-    material.color = color;
+    // Jemné farebné prechody
+    const baseColor = connection.weight > 0 
+      ? new THREE.Color("#00D4FF")
+      : new THREE.Color("#B565FF");
+    
+    const activeColor = baseColor.clone().multiplyScalar(1 + avgActivation * 0.5);
+    material.color = activeColor;
   });
 
   if (!fromNeuron || !toNeuron) return null;

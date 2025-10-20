@@ -343,7 +343,11 @@ export const useNeuralNetwork = () => {
   useEffect(() => {
     if (isAlgorithmRunning && algorithmRunner.current) {
       const intervalId = setInterval(() => {
-        algorithmRunner.current?.update();
+        // IMPORTANT: Update referencií pred každým update
+        if (algorithmRunner.current) {
+          algorithmRunner.current.updateNeurons(neurons);
+          algorithmRunner.current.update();
+        }
         
         // Update progress
         if (algorithmStartTime.current > 0 && currentAlgorithm) {
@@ -355,13 +359,13 @@ export const useNeuralNetwork = () => {
           }
         }
         
-        // Force re-render
+        // Force re-render - vytvor nový array aby React videl zmeny
         setNeurons(prev => [...prev]);
       }, 16); // ~60fps
 
       return () => clearInterval(intervalId);
     }
-  }, [isAlgorithmRunning, currentAlgorithm]);
+  }, [isAlgorithmRunning, currentAlgorithm, neurons]);
 
   // Update štatistík
   useEffect(() => {
