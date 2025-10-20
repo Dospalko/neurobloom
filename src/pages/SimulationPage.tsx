@@ -27,28 +27,31 @@ const SimulationPage = () => {
   }, [neurons.length, initializeNetwork]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-neuro-blue via-neuro-dark to-black">
+    <div className="relative min-h-screen overflow-hidden bg-neuro-dark">
       {/* Header */}
       <header className="relative z-10 px-6 py-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate("/")}
-              className="px-4 py-2 glass-effect rounded-lg hover:bg-white/10 transition-all flex items-center gap-2"
+              className="group relative px-4 py-2 glass-effect border border-white/20 rounded-lg hover:bg-white/10 hover:border-white/40 transition-all flex items-center gap-2 overflow-hidden"
             >
-              <span>←</span>
-              <span>Späť</span>
+              <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-all duration-300" />
+              <svg className="relative w-4 h-4" viewBox="0 0 16 16" fill="none">
+                <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span className="relative text-gray-400 group-hover:text-white text-sm">Back</span>
             </button>
             <div>
-              <h1 className="text-3xl font-bold gradient-text">NeuroBloom</h1>
-              <p className="text-sm text-gray-400 mt-1">Interaktívna simulácia</p>
+              <h1 className="text-xl font-bold text-white">NeuroBloom</h1>
+              <p className="text-[10px] text-gray-500 mt-0.5 font-mono">INTERACTIVE_SIM_v1.0</p>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-xs text-gray-500 uppercase tracking-wide">Live Simulation</div>
+            <div className="text-[10px] text-gray-500 uppercase tracking-wide font-mono">RUNTIME</div>
             <div className="flex items-center gap-2 mt-1">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-sm font-mono text-gray-300">Online</span>
+              <div className="w-1.5 h-1.5 bg-neuro-green rounded-full animate-pulse" />
+              <span className="text-xs font-mono text-white">ACTIVE</span>
             </div>
           </div>
         </div>
@@ -79,40 +82,58 @@ const SimulationPage = () => {
         </div>
 
         {/* Info sekcie dole */}
-        <div className="max-w-7xl mx-auto mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="glass-effect rounded-2xl p-6 space-y-3">
-            <div className="text-3xl">🌱</div>
-            <h3 className="text-lg font-bold text-neuro-cyan">Organický rast</h3>
-            <p className="text-sm text-gray-400 leading-relaxed">
-              Začni s jedným neurónom a sleduj, ako rastie sieť. Každý neurón starne, 
-              mení farbu a zdravie sa postupne degraduje.
-            </p>
+        <div className="max-w-7xl mx-auto mt-12 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="group relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-neuro-blue/10 to-transparent border border-neuro-blue/30 hover:border-neuro-blue/60 transition-all duration-300">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-neuro-blue/20 rounded-full blur-2xl group-hover:w-32 group-hover:h-32 transition-all duration-500" />
+            <div className="relative space-y-2">
+              <div className="inline-block px-2 py-0.5 bg-neuro-blue/20 rounded text-[10px] font-mono text-neuro-blue border border-neuro-blue/40">GROWTH</div>
+              <h3 className="text-sm font-bold text-white">Organický rast</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Začni s jedným neurónom a sleduj, ako rastie sieť. Každý neurón starne, 
+                mení farbu a zdravie sa postupne degraduje.
+              </p>
+            </div>
           </div>
 
-          <div className="glass-effect rounded-2xl p-6 space-y-3">
-            <div className="text-3xl">🎓</div>
-            <h3 className="text-lg font-bold text-neuro-purple">Učenie sa</h3>
-            <p className="text-sm text-gray-400 leading-relaxed">
-              Spusti tréning a sleduj ako sa váhy spojení menia. Sieť sa učí, 
-              ale dávaj pozor na overtraining a undertraining!
-            </p>
+          <div className="group relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-neuro-purple/10 to-transparent border border-neuro-purple/30 hover:border-neuro-purple/60 transition-all duration-300">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-neuro-purple/20 rounded-full blur-2xl group-hover:w-32 group-hover:h-32 transition-all duration-500" />
+            <div className="relative space-y-2">
+              <div className="inline-block px-2 py-0.5 bg-neuro-purple/20 rounded text-[10px] font-mono text-neuro-purple border border-neuro-purple/40">LEARNING</div>
+              <h3 className="text-sm font-bold text-white">Adaptívne učenie</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Spusti tréning a sleduj ako sa váhy spojení menia. Sieť sa učí, 
+                ale dávaj pozor na overtraining a undertraining!
+              </p>
+            </div>
           </div>
 
-          <div className="glass-effect rounded-2xl p-6 space-y-3">
-            <div className="text-3xl">💀</div>
-            <h3 className="text-lg font-bold text-neuro-pink">Starnutie</h3>
-            <p className="text-sm text-gray-400 leading-relaxed">
-              Neuróny časom starnú a ich zdravie klesá. Príliš veľa trénovania 
-              urýchli degradáciu - ako v živej prírode!
-            </p>
+          <div className="group relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-neuro-green/10 to-transparent border border-neuro-green/30 hover:border-neuro-green/60 transition-all duration-300">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-neuro-green/20 rounded-full blur-2xl group-hover:w-32 group-hover:h-32 transition-all duration-500" />
+            <div className="relative space-y-2">
+              <div className="inline-block px-2 py-0.5 bg-neuro-green/20 rounded text-[10px] font-mono text-neuro-green border border-neuro-green/40">DECAY</div>
+              <h3 className="text-sm font-bold text-white">Neurónový cyklus</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Neuróny časom starnú a ich zdravie klesá. Príliš veľa trénovania 
+                urýchli degradáciu - ako v živej prírode!
+              </p>
+            </div>
           </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 px-6 py-6 mt-12 border-t border-white/10">
-        <div className="max-w-7xl mx-auto text-center text-sm text-gray-500">
-          <p>© 2025 NeuroBloom · Experimentálna vizualizácia AI · React + Three.js + TypeScript</p>
+      <footer className="relative z-10 px-6 py-4 mt-12 border-t border-white/10">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="text-xs text-gray-500 font-mono">
+            <span className="text-white">NeuroBloom</span> · v1.0.0
+          </div>
+          <div className="flex items-center gap-4 text-xs text-gray-500 font-mono">
+            <span>React</span>
+            <div className="w-1 h-1 bg-gray-600 rounded-full" />
+            <span>Three.js</span>
+            <div className="w-1 h-1 bg-gray-600 rounded-full" />
+            <span>TypeScript</span>
+          </div>
         </div>
       </footer>
     </div>

@@ -28,15 +28,15 @@ const Connection = ({ connection, neurons }: ConnectionProps) => {
     positions.setXYZ(1, toNeuron.position.x, toNeuron.position.y, toNeuron.position.z);
     positions.needsUpdate = true;
 
-    // Animácia opacity podľa aktivácie
+    // Väčšia viditeľnosť - vyššia základná opacity
     const material = lineRef.current.material as THREE.LineBasicMaterial;
     const avgActivation = (fromNeuron.activation + toNeuron.activation) / 2;
-    material.opacity = 0.2 + avgActivation * connection.strength * 0.6;
+    material.opacity = 0.4 + avgActivation * connection.strength * 0.5; // Svetlejšie!
 
-    // Farba podľa váhy (+ modrá, - červená)
+    // Svetlejšie farby pre lepšiu viditeľnosť
     const color = connection.weight > 0 
-      ? new THREE.Color("#6fdfff") 
-      : new THREE.Color("#ff6ddf");
+      ? new THREE.Color("#6FB5FF") // Svetlejšia modrá
+      : new THREE.Color("#B589FF"); // Svetlejšia fialová
     material.color = color;
   });
 
@@ -50,8 +50,9 @@ const Connection = ({ connection, neurons }: ConnectionProps) => {
       <lineBasicMaterial
         attach="material"
         transparent
-        opacity={0.3}
-        color={connection.weight > 0 ? "#6fdfff" : "#ff6ddf"}
+        opacity={0.5}
+        linewidth={2}
+        color={connection.weight > 0 ? "#6FB5FF" : "#B589FF"}
       />
     </primitive>
   );

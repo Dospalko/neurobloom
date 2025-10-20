@@ -24,13 +24,13 @@ const ControlPanel = ({
   const [selectedType, setSelectedType] = useState<"input" | "hidden" | "output">("hidden");
 
   return (
-    <div className="glass-effect rounded-2xl p-6 space-y-6">
-      <h3 className="text-xl font-bold gradient-text">Ovládanie</h3>
+    <div className="glass-effect rounded-2xl p-5 space-y-5 border border-white/10">
+      <h3 className="text-lg font-bold text-white">Control Panel</h3>
       
       {/* Bulk pridávanie neurónov */}
       {onAddMultiple && (
-        <div className="space-y-3">
-          <p className="text-sm text-gray-400 uppercase tracking-wide">Rýchle pridanie</p>
+        <div className="space-y-2">
+          <p className="text-xs text-gray-400 uppercase tracking-wide">Quick Add</p>
           
           <div className="flex gap-2">
             <input
@@ -39,23 +39,23 @@ const ControlPanel = ({
               max="50"
               value={bulkCount}
               onChange={(e) => setBulkCount(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
-              className="w-20 px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:border-neuro-cyan"
+              className="w-20 px-3 py-2 bg-white/5 border border-white/30 rounded-lg text-white focus:outline-none focus:border-neuro-blue focus:bg-white/10"
             />
             
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value as any)}
-              className="flex-1 px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:border-neuro-cyan"
+              className="flex-1 px-3 py-2 bg-white/5 border border-white/30 rounded-lg text-white focus:outline-none focus:border-neuro-blue focus:bg-white/10"
             >
-              <option value="input">Input</option>
-              <option value="hidden">Hidden</option>
-              <option value="output">Output</option>
+              <option value="input" className="bg-neuro-dark">Input</option>
+              <option value="hidden" className="bg-neuro-dark">Hidden</option>
+              <option value="output" className="bg-neuro-dark">Output</option>
             </select>
             
             <button
               onClick={() => onAddMultiple(bulkCount, selectedType)}
               disabled={disabled}
-              className="px-4 py-2 bg-gradient-to-r from-neuro-cyan to-neuro-purple rounded-lg font-semibold transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-neuro-purple/30 border border-neuro-purple rounded-lg font-semibold text-white transition-all duration-200 hover:scale-105 hover:bg-neuro-purple/40 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               + {bulkCount}
             </button>
@@ -64,87 +64,113 @@ const ControlPanel = ({
       )}
       
       {/* Pridávanie neurónov */}
-      <div className="space-y-3">
-        <p className="text-sm text-gray-400 uppercase tracking-wide">Pridať neurón</p>
+      <div className="space-y-2">
+        <p className="text-xs text-gray-400 uppercase tracking-wide">Add Neuron</p>
         <div className="grid grid-cols-3 gap-2">
           <button
             onClick={() => onAddNeuron("input")}
             disabled={disabled}
-            className="px-4 py-3 bg-neuro-cyan/20 hover:bg-neuro-cyan/30 border border-neuro-cyan/50 rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="group relative px-3 py-3 bg-neuro-blue/10 hover:bg-neuro-blue/20 border border-neuro-blue/40 rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
           >
-            <div className="text-xs text-neuro-cyan font-semibold">INPUT</div>
-            <div className="text-2xl">📥</div>
+            <div className="absolute inset-0 bg-neuro-blue/0 group-hover:bg-neuro-blue/10 transition-all duration-300" />
+            <div className="relative">
+              <div className="text-[10px] text-neuro-blue font-bold mb-1">IN</div>
+              <div className="w-4 h-4 border-2 border-neuro-blue rounded-full mx-auto" />
+            </div>
           </button>
           
           <button
             onClick={() => onAddNeuron("hidden")}
             disabled={disabled}
-            className="px-4 py-3 bg-neuro-purple/20 hover:bg-neuro-purple/30 border border-neuro-purple/50 rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="group relative px-3 py-3 bg-neuro-purple/10 hover:bg-neuro-purple/20 border border-neuro-purple/40 rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
           >
-            <div className="text-xs text-neuro-purple font-semibold">HIDDEN</div>
-            <div className="text-2xl">🧠</div>
+            <div className="absolute inset-0 bg-neuro-purple/0 group-hover:bg-neuro-purple/10 transition-all duration-300" />
+            <div className="relative">
+              <div className="text-[10px] text-neuro-purple font-bold mb-1">HID</div>
+              <div className="flex gap-0.5 justify-center">
+                <div className="w-2 h-2 border border-neuro-purple rounded-full" />
+                <div className="w-2 h-2 border border-neuro-purple rounded-full" />
+              </div>
+            </div>
           </button>
           
           <button
             onClick={() => onAddNeuron("output")}
             disabled={disabled}
-            className="px-4 py-3 bg-neuro-pink/20 hover:bg-neuro-pink/30 border border-neuro-pink/50 rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="group relative px-3 py-3 bg-neuro-green/10 hover:bg-neuro-green/20 border border-neuro-green/40 rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
           >
-            <div className="text-xs text-neuro-pink font-semibold">OUTPUT</div>
-            <div className="text-2xl">📤</div>
+            <div className="absolute inset-0 bg-neuro-green/0 group-hover:bg-neuro-green/10 transition-all duration-300" />
+            <div className="relative">
+              <div className="text-[10px] text-neuro-green font-bold mb-1">OUT</div>
+              <div className="w-4 h-4 border-2 border-neuro-green rounded-sm mx-auto" />
+            </div>
           </button>
         </div>
       </div>
       
       {/* Trénovanie */}
-      <div className="space-y-3">
-        <p className="text-sm text-gray-400 uppercase tracking-wide">Trénovanie</p>
+      <div className="space-y-2">
+        <p className="text-xs text-gray-400 uppercase tracking-wide">Training</p>
         <div className="grid grid-cols-2 gap-2">
           {mode !== "training" ? (
             <button
               onClick={onStartTraining}
               disabled={disabled}
-              className="col-span-2 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-lg font-semibold transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative col-span-2 px-5 py-2.5 bg-neuro-green/20 hover:bg-neuro-green/30 border border-neuro-green rounded-lg font-semibold text-sm transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
             >
-              <span className="text-xl">▶️</span>
-              <span>Spustiť tréning</span>
+              <div className="absolute inset-0 bg-neuro-green/0 group-hover:bg-neuro-green/10 transition-all duration-300" />
+              <div className="relative flex items-center gap-2">
+                <div className="w-0 h-0 border-t-4 border-t-transparent border-l-6 border-l-neuro-green border-b-4 border-b-transparent" />
+                <span className="text-white">Initialize Training</span>
+              </div>
             </button>
           ) : (
             <button
               onClick={onStopTraining}
-              className="col-span-2 px-6 py-3 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 rounded-lg font-semibold transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2 animate-pulse"
+              className="group relative col-span-2 px-5 py-2.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500 rounded-lg font-semibold text-sm transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2 overflow-hidden"
             >
-              <span className="text-xl">⏸️</span>
-              <span>Zastaviť tréning</span>
+              <div className="absolute inset-0 bg-red-500/10 animate-pulse" />
+              <div className="relative flex items-center gap-2">
+                <div className="flex gap-0.5">
+                  <div className="w-1 h-3 bg-red-500" />
+                  <div className="w-1 h-3 bg-red-500" />
+                </div>
+                <span className="text-white">Stop Training</span>
+              </div>
             </button>
           )}
         </div>
       </div>
       
       {/* Reset */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         <button
           onClick={onReset}
           disabled={disabled}
-          className="w-full px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/20 rounded-lg font-semibold transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="group relative w-full px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/20 rounded-lg font-semibold text-sm text-gray-400 hover:text-white transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
         >
-          <span className="text-xl">🔄</span>
-          <span>Resetovať sieť</span>
+          <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-all duration-300" />
+          <div className="relative flex items-center gap-2">
+            <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none">
+              <path d="M8 2v4M8 2C5.8 2 4 3.8 4 6c0 1.5.8 2.8 2 3.5M8 2c2.2 0 4 1.8 4 4 0 1.5-.8 2.8-2 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            <span>Reset Network</span>
+          </div>
         </button>
       </div>
       
       {/* Status indikátor */}
-      <div className="pt-4 border-t border-white/10">
+      <div className="pt-3 border-t border-white/10">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-400">Status:</span>
+          <span className="text-xs text-gray-400">Status:</span>
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${
-              mode === "training" ? "bg-green-400 animate-pulse" :
+            <div className={`w-1.5 h-1.5 rounded-full ${
+              mode === "training" ? "bg-neuro-green animate-pulse" :
               mode === "idle" ? "bg-gray-400" :
-              mode === "inference" ? "bg-blue-400 animate-pulse" :
+              mode === "inference" ? "bg-neuro-blue animate-pulse" :
               "bg-red-400 animate-pulse"
             }`} />
-            <span className="text-sm font-mono text-white capitalize">{mode}</span>
+            <span className="text-xs font-mono text-white capitalize">{mode}</span>
           </div>
         </div>
       </div>

@@ -7,16 +7,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        'neuro-dark': '#050410',
-        'neuro-purple': '#a06dff',
-        'neuro-cyan': '#6fdfff',
-        'neuro-pink': '#ff6ddf',
-        'neuro-blue': '#111b34',
-        'neuro-deep': '#48174c',
+        'neuro-dark': '#0F0F0F',
+        'neuro-blue': '#4A9EFF',
+        'neuro-purple': '#9B6AFF',
+        'neuro-green': '#5FE88C',
       },
       fontFamily: {
-        'sans': ['Inter', 'system-ui', 'sans-serif'],
-        'mono': ['Fira Code', 'monospace'],
+        'sans': ['Orbitron', 'system-ui', 'sans-serif'],
+        'mono': ['Orbitron', 'monospace'],
       },
       animation: {
         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',

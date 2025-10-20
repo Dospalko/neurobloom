@@ -15,7 +15,7 @@
 
   body {
     @apply m-0 p-0 min-h-screen font-sans antialiased;
-    @apply bg-gradient-to-b from-neuro-blue via-neuro-dark to-black;
+    @apply bg-neuro-dark;
     @apply text-gray-100 overflow-x-hidden;
   }
 
@@ -34,28 +34,27 @@
 
 @layer components {
   .scene-caption {
-    @apply text-xs uppercase tracking-[0.5em] text-purple-200/40;
+    @apply text-xs uppercase tracking-[0.5em] text-neuro-blue;
     @apply bg-black/60 px-5 py-3 rounded-full;
-    @apply border border-purple-400/20 backdrop-blur-md;
+    @apply border border-neuro-purple/30 backdrop-blur-md;
   }
 }
 
 @layer utilities {
-  .gradient-text {
-    @apply bg-gradient-to-r from-neuro-cyan via-neuro-purple to-neuro-pink;
-    @apply bg-clip-text text-transparent;
-  }
-
   .glass-effect {
-    @apply bg-white/5 backdrop-blur-md border border-white/10;
+    @apply bg-white/5 backdrop-blur-md border border-neuro-blue/20;
   }
 
-  .glow-cyan {
-    box-shadow: 0 0 20px rgba(111, 223, 255, 0.3);
+  .glow-blue {
+    box-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
   }
 
   .glow-purple {
-    box-shadow: 0 0 20px rgba(160, 109, 255, 0.3);
+    box-shadow: 0 0 20px rgba(157, 78, 221, 0.5);
+  }
+
+  .glow-green {
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.5);
   }
   
   .delay-75 {

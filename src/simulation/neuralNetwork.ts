@@ -7,9 +7,9 @@ export const createNeuron = (
   type: "input" | "hidden" | "output" = "hidden"
 ): Neuron => {
   const colorMap = {
-    input: new THREE.Color("#6fdfff"),
-    hidden: new THREE.Color("#a06dff"),
-    output: new THREE.Color("#ff6ddf"),
+    input: new THREE.Color("#4A9EFF"),
+    hidden: new THREE.Color("#9B6AFF"),
+    output: new THREE.Color("#5FE88C"),
   };
 
   return {

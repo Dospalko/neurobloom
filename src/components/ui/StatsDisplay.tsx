@@ -16,38 +16,38 @@ const StatsDisplay = ({ stats }: StatsDisplayProps) => {
   );
 
   return (
-    <div className="glass-effect rounded-2xl p-6 space-y-4">
-      <h3 className="text-xl font-bold gradient-text mb-4">Štatistiky siete</h3>
+    <div className="glass-effect rounded-2xl p-5 space-y-3 border border-white/10">
+      <h3 className="text-lg font-bold text-white mb-3">Network Stats</h3>
       
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <p className="text-xs text-gray-400 uppercase tracking-wide">Neuróny</p>
-          <p className="text-2xl font-bold text-neuro-cyan">{stats.totalNeurons}</p>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-0.5">
+          <p className="text-[10px] text-gray-400 uppercase tracking-wide">Neurons</p>
+          <p className="text-xl font-bold text-neuro-blue">{stats.totalNeurons}</p>
         </div>
         
-        <div className="space-y-1">
-          <p className="text-xs text-gray-400 uppercase tracking-wide">Spojenia</p>
-          <p className="text-2xl font-bold text-neuro-purple">{stats.totalConnections}</p>
+        <div className="space-y-0.5">
+          <p className="text-[10px] text-gray-400 uppercase tracking-wide">Connections</p>
+          <p className="text-xl font-bold text-neuro-purple">{stats.totalConnections}</p>
         </div>
       </div>
       
       {/* Progress bars */}
-      <div className="space-y-3 pt-2">
+      <div className="space-y-2.5 pt-1">
         <div>
-          <div className="flex justify-between text-xs text-gray-400 mb-1">
-            <span>Aktivácia</span>
-            <span className="text-neuro-pink font-mono">
+          <div className="flex justify-between text-[10px] text-gray-400 mb-1">
+            <span>Activation</span>
+            <span className="text-neuro-green font-mono font-bold">
               {(stats.averageActivation * 100).toFixed(1)}%
             </span>
           </div>
-          <ProgressBar value={stats.averageActivation} color="bg-gradient-to-r from-neuro-cyan to-neuro-pink" />
+          <ProgressBar value={stats.averageActivation} color="bg-neuro-blue" />
         </div>
         
         <div>
-          <div className="flex justify-between text-xs text-gray-400 mb-1">
-            <span>Zdravie</span>
-            <span className={`font-mono ${
-              stats.averageHealth > 0.7 ? 'text-green-400' : 
+          <div className="flex justify-between text-[10px] text-gray-400 mb-1">
+            <span>Health</span>
+            <span className={`font-mono font-bold ${
+              stats.averageHealth > 0.7 ? 'text-neuro-green' : 
               stats.averageHealth > 0.4 ? 'text-yellow-400' : 
               'text-red-400'
             }`}>
@@ -57,7 +57,7 @@ const StatsDisplay = ({ stats }: StatsDisplayProps) => {
           <ProgressBar 
             value={stats.averageHealth} 
             color={
-              stats.averageHealth > 0.7 ? 'bg-green-500' : 
+              stats.averageHealth > 0.7 ? 'bg-neuro-green' : 
               stats.averageHealth > 0.4 ? 'bg-yellow-500' : 
               'bg-red-500'
             } 
@@ -65,47 +65,50 @@ const StatsDisplay = ({ stats }: StatsDisplayProps) => {
         </div>
         
         <div>
-          <div className="flex justify-between text-xs text-gray-400 mb-1">
-            <span>Presnosť</span>
-            <span className="text-white font-mono">
+          <div className="flex justify-between text-[10px] text-gray-400 mb-1">
+            <span>Accuracy</span>
+            <span className="text-white font-mono font-bold">
               {(stats.accuracy * 100).toFixed(2)}%
             </span>
           </div>
-          <ProgressBar value={stats.accuracy} color="bg-gradient-to-r from-neuro-purple to-neuro-cyan" />
+          <ProgressBar value={stats.accuracy} color="bg-neuro-purple" />
         </div>
       </div>
       
-      <div className="pt-4 border-t border-white/10 space-y-2">
+      <div className="pt-3 border-t border-white/10 space-y-1.5">
         <div className="flex justify-between">
-          <span className="text-sm text-gray-400">Tréningové epochy</span>
-          <span className="text-sm font-mono text-white">{stats.trainingEpochs}</span>
+          <span className="text-xs text-gray-400">Training Epochs</span>
+          <span className="text-xs font-mono text-white font-bold">{stats.trainingEpochs}</span>
         </div>
       </div>
       
       {/* Upozornenia */}
       {stats.isOverfitted && (
-        <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 animate-pulse">
-          <p className="text-sm text-red-300 flex items-center gap-2">
-            <span className="text-lg">⚠️</span>
-            <span><strong>Overtraining!</strong> Príliš prispôsobená tréningovým dátam</span>
+        <div className="relative overflow-hidden bg-red-500/10 border border-red-500/40 rounded-lg p-2.5 animate-pulse">
+          <div className="absolute top-0 left-0 w-full h-0.5 bg-red-500/50" />
+          <p className="text-xs text-red-400 flex items-center gap-2">
+            <div className="flex-shrink-0 w-1 h-1 bg-red-500 rounded-full animate-ping" />
+            <span className="font-mono"><span className="text-white font-bold">ERROR:</span> Overfitting detected</span>
           </p>
         </div>
       )}
       
       {stats.isUnderfitted && (
-        <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-3">
-          <p className="text-sm text-yellow-300 flex items-center gap-2">
-            <span className="text-lg">⚠️</span>
-            <span><strong>Undertraining!</strong> Sieť sa ešte nedostatočne naučila</span>
+        <div className="relative overflow-hidden bg-yellow-500/10 border border-yellow-500/40 rounded-lg p-2.5">
+          <div className="absolute top-0 left-0 w-full h-0.5 bg-yellow-500/50" />
+          <p className="text-xs text-yellow-400 flex items-center gap-2">
+            <div className="flex-shrink-0 w-1 h-1 bg-yellow-500 rounded-full" />
+            <span className="font-mono"><span className="text-white font-bold">WARN:</span> Insufficient training</span>
           </p>
         </div>
       )}
       
       {!stats.isOverfitted && !stats.isUnderfitted && stats.trainingEpochs > 0 && stats.accuracy > 0.8 && (
-        <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-3">
-          <p className="text-sm text-green-300 flex items-center gap-2">
-            <span className="text-lg">✅</span>
-            <span><strong>Výborné!</strong> Sieť sa učí optimálne</span>
+        <div className="relative overflow-hidden bg-neuro-green/10 border border-neuro-green/40 rounded-lg p-2.5">
+          <div className="absolute top-0 left-0 w-full h-0.5 bg-neuro-green/50" />
+          <p className="text-xs text-neuro-green flex items-center gap-2">
+            <div className="flex-shrink-0 w-1 h-1 bg-neuro-green rounded-full animate-pulse" />
+            <span className="font-mono"><span className="text-white font-bold">OK:</span> Optimal convergence</span>
           </p>
         </div>
       )}

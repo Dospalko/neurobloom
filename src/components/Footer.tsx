@@ -2,55 +2,62 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
   
   return (
-    <footer className="relative px-6 py-16 bg-gradient-to-t from-black via-neuro-dark to-transparent">
+    <footer className="relative px-6 py-12 border-t border-white/10 bg-black/20">
       <div className="max-w-7xl mx-auto">
         {/* Main content */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           {/* Brand section */}
-          <div className="space-y-4">
-            <h3 className="text-3xl font-bold gradient-text">NeuroBloom</h3>
-            <p className="text-gray-400 leading-relaxed">
-              Experimentálna vizualizácia umelej neurónovej siete postavená na React a Three.js
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 bg-neuro-blue rounded-full animate-pulse" />
+              <h3 className="text-xl font-bold text-white">NeuroBloom</h3>
+            </div>
+            <p className="text-sm text-gray-500 leading-relaxed">
+              Experimentálna vizualizácia živej neurónovej siete v reálnom čase
             </p>
-            <div className="flex gap-2">
-              <div className="w-2 h-2 bg-neuro-cyan rounded-full animate-pulse" />
-              <div className="w-2 h-2 bg-neuro-purple rounded-full animate-pulse delay-75" />
-              <div className="w-2 h-2 bg-neuro-pink rounded-full animate-pulse delay-150" />
+            <div className="flex gap-1.5">
+              <div className="w-1.5 h-1.5 bg-neuro-blue rounded-full animate-pulse" />
+              <div className="w-1.5 h-1.5 bg-neuro-purple rounded-full animate-pulse delay-75" />
+              <div className="w-1.5 h-1.5 bg-neuro-green rounded-full animate-pulse delay-150" />
             </div>
           </div>
           
           {/* Technologies */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-neuro-cyan uppercase tracking-wide">Technológie</h4>
-            <ul className="space-y-2 text-gray-400">
-              <li className="hover:text-neuro-cyan transition-colors cursor-pointer">→ React 18</li>
-              <li className="hover:text-neuro-cyan transition-colors cursor-pointer">→ Three.js</li>
-              <li className="hover:text-neuro-cyan transition-colors cursor-pointer">→ React Three Fiber</li>
-              <li className="hover:text-neuro-cyan transition-colors cursor-pointer">→ TypeScript</li>
-              <li className="hover:text-neuro-cyan transition-colors cursor-pointer">→ Tailwind CSS</li>
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Stack</h4>
+            <ul className="space-y-1.5 text-xs text-gray-500 font-mono">
+              <li className="hover:text-neuro-blue transition-colors cursor-pointer">• React 18</li>
+              <li className="hover:text-neuro-blue transition-colors cursor-pointer">• Three.js + R3F</li>
+              <li className="hover:text-neuro-blue transition-colors cursor-pointer">• TypeScript</li>
+              <li className="hover:text-neuro-blue transition-colors cursor-pointer">• Tailwind CSS</li>
+              <li className="hover:text-neuro-blue transition-colors cursor-pointer">• Vite</li>
             </ul>
           </div>
           
-          {/* Principles */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-neuro-purple uppercase tracking-wide">Princípy</h4>
-            <ul className="space-y-2 text-gray-400">
-              <li className="hover:text-neuro-purple transition-colors cursor-pointer">→ Organický rast</li>
-              <li className="hover:text-neuro-purple transition-colors cursor-pointer">→ Synaptická plastickosť</li>
-              <li className="hover:text-neuro-purple transition-colors cursor-pointer">→ Adaptívna aktivácia</li>
-              <li className="hover:text-neuro-purple transition-colors cursor-pointer">→ Živá simulácia</li>
+          {/* Features */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Features</h4>
+            <ul className="space-y-1.5 text-xs text-gray-500 font-mono">
+              <li className="hover:text-neuro-purple transition-colors cursor-pointer">• Real-time growth</li>
+              <li className="hover:text-neuro-purple transition-colors cursor-pointer">• Adaptive learning</li>
+              <li className="hover:text-neuro-purple transition-colors cursor-pointer">• Neural plasticity</li>
+              <li className="hover:text-neuro-purple transition-colors cursor-pointer">• Live simulation</li>
             </ul>
           </div>
         </div>
         
         {/* Bottom bar */}
-        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-gray-500 text-sm">
-            © {currentYear} NeuroBloom · vytvorené pre vizuálny experiment a vzdelávanie
+        <div className="pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-3">
+          <p className="text-xs text-gray-600 font-mono">
+            © {currentYear} NeuroBloom · <span className="text-gray-500">Educational project</span>
           </p>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-1 bg-gradient-to-r from-neuro-cyan via-neuro-purple to-neuro-pink rounded-full animate-pulse-slow" />
-            <span className="text-xs text-gray-600 font-mono">živá AI</span>
+            <div className="flex gap-1">
+              <div className="w-1 h-3 bg-neuro-blue" />
+              <div className="w-1 h-3 bg-neuro-purple" />
+              <div className="w-1 h-3 bg-neuro-green" />
+            </div>
+            <span className="text-xs text-gray-600 font-mono">v1.0.0</span>
           </div>
         </div>
       </div>
