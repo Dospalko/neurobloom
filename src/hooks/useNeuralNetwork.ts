@@ -231,19 +231,85 @@ export const useNeuralNetwork = () => {
 
   // Spustenie algoritmu
   const runAlgorithm = useCallback((algorithmType: AlgorithmType) => {
-    if (!algorithmRunner.current) {
-      algorithmRunner.current = new AlgorithmRunner(neurons);
-    } else {
-      algorithmRunner.current.updateNeurons(neurons);
-    }
-    
-    algorithmRunner.current.start(algorithmType);
-    setIsAlgorithmRunning(true);
-    setCurrentAlgorithm(algorithmType);
-    setMode("idle"); // Zastav trénovanie ak beží
+    // Zastav trénovanie ak beží
+    setMode("idle");
     if (trainingInterval.current) {
       clearInterval(trainingInterval.current);
       trainingInterval.current = null;
+    }
+    
+    // Vytvor neuróny ak ich je málo (menej ako 30)
+    const minNeurons = 30;
+    if (neurons.length < minNeurons) {
+      const neuronsToAdd = minNeurons - neurons.length;
+      const newNeurons: Neuron[] = [];
+      
+      // Vytvor neuróny v sférickom usporiadaní
+      for (let i = 0; i < neuronsToAdd; i++) {
+        const phi = Math.acos(-1 + (2 * (neurons.length + i)) / minNeurons);
+        const theta = Math.sqrt(minNeurons * Math.PI) * phi;
+        
+        const radius = 5 + (i * 0.1);
+        const position = new THREE.Vector3(
+          radius * Math.cos(theta) * Math.sin(phi),
+          radius * Math.sin(theta) * Math.sin(phi),
+          radius * Math.cos(phi)
+        );
+        
+        const type: "input" | "hidden" | "output" = 
+          i < 5 ? "input" : 
+          i > neuronsToAdd - 5 ? "output" : 
+          "hidden";
+        
+        const neuron = createNeuron(position, type);
+        
+        // Prepoj s niekoľkými najbližšími neurónmi
+        const allNeurons = [...neurons, ...newNeurons];
+        const connections: Connection[] = [];
+        
+        if (allNeurons.length > 0) {
+          // Nájdi 3 najbližších neurónov
+          const distances = allNeurons.map(n => ({
+            neuron: n,
+            distance: n.position.distanceTo(position)
+          }));
+          distances.sort((a, b) => a.distance - b.distance);
+          
+          for (let j = 0; j < Math.min(3, distances.length); j++) {
+            connections.push(createConnection(distances[j].neuron.id, neuron.id));
+          }
+        }
+        
+        neuron.connections = connections;
+        newNeurons.push(neuron);
+      }
+      
+      setNeurons(prev => [...prev, ...newNeurons]);
+      
+      // Počkaj kým sa neuróny pridajú
+      setTimeout(() => {
+        const updatedNeurons = [...neurons, ...newNeurons];
+        if (!algorithmRunner.current) {
+          algorithmRunner.current = new AlgorithmRunner(updatedNeurons);
+        } else {
+          algorithmRunner.current.updateNeurons(updatedNeurons);
+        }
+        
+        algorithmRunner.current.start(algorithmType);
+        setIsAlgorithmRunning(true);
+        setCurrentAlgorithm(algorithmType);
+      }, 100);
+    } else {
+      // Už máme dosť neurónov
+      if (!algorithmRunner.current) {
+        algorithmRunner.current = new AlgorithmRunner(neurons);
+      } else {
+        algorithmRunner.current.updateNeurons(neurons);
+      }
+      
+      algorithmRunner.current.start(algorithmType);
+      setIsAlgorithmRunning(true);
+      setCurrentAlgorithm(algorithmType);
     }
   }, [neurons]);
 

@@ -94,15 +94,15 @@ const SimulationPage = () => {
         </div>
 
         {/* Info sekcie dole */}
-        <div className="max-w-7xl mx-auto mt-12 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="max-w-7xl mx-auto mt-12 grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="group relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-neuro-blue/10 to-transparent border border-neuro-blue/30 hover:border-neuro-blue/60 transition-all duration-300">
             <div className="absolute top-0 right-0 w-20 h-20 bg-neuro-blue/20 rounded-full blur-2xl group-hover:w-32 group-hover:h-32 transition-all duration-500" />
             <div className="relative space-y-2">
-              <div className="inline-block px-2 py-0.5 bg-neuro-blue/20 rounded text-[10px] font-mono text-neuro-blue border border-neuro-blue/40">GROWTH</div>
-              <h3 className="text-sm font-bold text-white">Organický rast</h3>
+              <div className="inline-block px-2 py-0.5 bg-neuro-blue/20 rounded text-[10px] font-mono text-neuro-blue border border-neuro-blue/40">ALGORITHMS</div>
+              <h3 className="text-sm font-bold text-white">5 vizualizácií</h3>
               <p className="text-xs text-gray-400 leading-relaxed">
-                Začni s jedným neurónom a sleduj, ako rastie sieť. Každý neurón starne, 
-                mení farbu a zdravie sa postupne degraduje.
+                Spusti predprogramované algoritmy a sleduj farebné zmeny neurónov 
+                v reálnom čase. Automaticky vytvorí 30+ neurónov.
               </p>
             </div>
           </div>
@@ -122,11 +122,23 @@ const SimulationPage = () => {
           <div className="group relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-neuro-green/10 to-transparent border border-neuro-green/30 hover:border-neuro-green/60 transition-all duration-300">
             <div className="absolute top-0 right-0 w-20 h-20 bg-neuro-green/20 rounded-full blur-2xl group-hover:w-32 group-hover:h-32 transition-all duration-500" />
             <div className="relative space-y-2">
-              <div className="inline-block px-2 py-0.5 bg-neuro-green/20 rounded text-[10px] font-mono text-neuro-green border border-neuro-green/40">DECAY</div>
-              <h3 className="text-sm font-bold text-white">Neurónový cyklus</h3>
+              <div className="inline-block px-2 py-0.5 bg-neuro-green/20 rounded text-[10px] font-mono text-neuro-green border border-neuro-green/40">GROWTH</div>
+              <h3 className="text-sm font-bold text-white">Organický rast</h3>
               <p className="text-xs text-gray-400 leading-relaxed">
-                Neuróny časom starnú a ich zdravie klesá. Príliš veľa trénovania 
-                urýchli degradáciu - ako v živej prírode!
+                Pridávaj neuróny manuálne a sleduj ako sa automaticky prepájajú 
+                a vytvárajú komplexnú sieť.
+              </p>
+            </div>
+          </div>
+
+          <div className="group relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-neuro-orange/10 to-transparent border border-neuro-orange/30 hover:border-neuro-orange/60 transition-all duration-300">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-neuro-orange/20 rounded-full blur-2xl group-hover:w-32 group-hover:h-32 transition-all duration-500" />
+            <div className="relative space-y-2">
+              <div className="inline-block px-2 py-0.5 bg-neuro-orange/20 rounded text-[10px] font-mono text-neuro-orange border border-neuro-orange/40">INTERACTIVE</div>
+              <h3 className="text-sm font-bold text-white">3D Explorácia</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Rotuj, zoomuj a skúmaj neurónovú sieť z každého uhla. 
+                Plne interaktívna Three.js scéna.
               </p>
             </div>
           </div>

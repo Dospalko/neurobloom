@@ -13,14 +13,14 @@ const Neuron = ({ neuron, onClick }: NeuronProps) => {
   const glowRef = useRef<THREE.Mesh>(null);
   const outerGlowRef = useRef<THREE.Mesh>(null);
   
-  // Svetlejšie a žiarivejšie materiály
+  // Výrazné farebné materiály - nie biele!
   const material = useMemo(() => 
     new THREE.MeshStandardMaterial({
-      color: neuron.color,
-      emissive: neuron.color,
-      emissiveIntensity: 2.5, // Zvýšená intenzita
-      metalness: 0.5,
-      roughness: 0.1,
+      color: neuron.color.clone().multiplyScalar(1.5),
+      emissive: neuron.color.clone().multiplyScalar(1.2),
+      emissiveIntensity: 3, // Silná intenzita
+      metalness: 0.3,
+      roughness: 0.2,
     }), 
   [neuron.color]);
 
@@ -28,48 +28,50 @@ const Neuron = ({ neuron, onClick }: NeuronProps) => {
     if (!meshRef.current || !glowRef.current || !outerGlowRef.current) return;
 
     // Väčšie pulzovanie podľa aktivácie
-    const pulse = 1 + neuron.activation * 0.5;
-    meshRef.current.scale.setScalar(pulse * 0.25); // VÄČŠIE neuróny!
+    const pulse = 1 + neuron.activation * 0.8;
+    meshRef.current.scale.setScalar(pulse * 0.25);
 
     // Rotácia
     meshRef.current.rotation.y += 0.01 * neuron.health;
 
-    // Vnútorný glow - vždy viditeľný
+    // Vnútorný glow - silnejší pri aktivácii
     const glowScale = 1 + Math.sin(state.clock.elapsedTime * 2) * 0.15;
     glowRef.current.scale.setScalar(glowScale * 0.35 * (0.5 + neuron.activation * 0.5));
 
-    // Vonkajší glow - pre lepšiu viditeľnosť
+    // Vonkajší glow - výraznejší
     const outerGlowScale = 1 + Math.sin(state.clock.elapsedTime * 1.5) * 0.2;
-    outerGlowRef.current.scale.setScalar(outerGlowScale * 0.5);
+    outerGlowRef.current.scale.setScalar(outerGlowScale * 0.5 * (1 + neuron.activation * 0.5));
 
-    // Svetlejšia farba podľa zdravia
-    const healthColor = neuron.color.clone().multiplyScalar(1.5); // Svetlejšia
-    healthColor.lerp(new THREE.Color("#ff6666"), 1 - neuron.health);
+    // Výraznejšia farba - nikdy nie biela!
+    const activeColor = neuron.color.clone().multiplyScalar(1.8 + neuron.activation * 0.5);
+    const healthColor = activeColor.clone();
+    healthColor.lerp(new THREE.Color("#ff4444"), 1 - neuron.health);
+    
     material.color = healthColor;
     material.emissive = healthColor;
-    material.emissiveIntensity = 2 + neuron.activation * 2;
+    material.emissiveIntensity = 3 + neuron.activation * 3; // Ešte silnejšie!
   });
 
   return (
     <group position={neuron.position}>
-      {/* Vonkajší glow - pre lepšiu viditeľnosť */}
+      {/* Vonkajší glow - farebný a výrazný */}
       <mesh ref={outerGlowRef}>
         <sphereGeometry args={[1, 16, 16]} />
         <meshBasicMaterial
-          color={neuron.color}
+          color={neuron.color.clone().multiplyScalar(1.5)}
           transparent
-          opacity={0.15}
+          opacity={0.2 + neuron.activation * 0.2}
           depthWrite={false}
         />
       </mesh>
 
-      {/* Vnútorný glow */}
+      {/* Vnútorný glow - intenzívna farba */}
       <mesh ref={glowRef}>
         <sphereGeometry args={[1, 16, 16]} />
         <meshBasicMaterial
-          color={neuron.color}
+          color={neuron.color.clone().multiplyScalar(1.8)}
           transparent
-          opacity={0.4 + neuron.activation * 0.3}
+          opacity={0.5 + neuron.activation * 0.4}
           depthWrite={false}
         />
       </mesh>
@@ -79,12 +81,12 @@ const Neuron = ({ neuron, onClick }: NeuronProps) => {
         <sphereGeometry args={[1, 20, 20]} />
       </mesh>
 
-      {/* Svetlé jadro - vždy viditeľné */}
+      {/* Svetlé jadro - žiarivá farba namiesto bielej */}
       <mesh scale={0.6}>
         <sphereGeometry args={[1, 12, 12]} />
         <meshBasicMaterial 
-          color="#ffffff" 
-          opacity={0.7 + neuron.activation * 0.3} 
+          color={neuron.color.clone().multiplyScalar(2)} 
+          opacity={0.8 + neuron.activation * 0.2} 
           transparent 
         />
       </mesh>

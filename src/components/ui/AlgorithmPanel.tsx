@@ -134,12 +134,25 @@ const AlgorithmPanel = ({
       )}
 
       {/* Status */}
-      <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs">
-        <span className="text-gray-400">Visualization</span>
-        <div className="flex items-center gap-2">
-          <div className={`w-1.5 h-1.5 rounded-full ${isRunning ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`} />
-          <span className="text-white font-mono">{isRunning ? 'Running' : 'Idle'}</span>
+      <div className="pt-3 border-t border-white/10 space-y-2">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-gray-400">Visualization</span>
+          <div className="flex items-center gap-2">
+            <div className={`w-1.5 h-1.5 rounded-full ${isRunning ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`} />
+            <span className="text-white font-mono">{isRunning ? 'Running' : 'Idle'}</span>
+          </div>
         </div>
+        
+        {isRunning && currentAlgorithm && (
+          <div className="text-[10px] text-gray-500 font-mono flex items-center gap-2">
+            <div className="flex gap-0.5">
+              <div className="w-0.5 h-2 bg-neuro-blue animate-pulse" />
+              <div className="w-0.5 h-2 bg-neuro-purple animate-pulse delay-75" />
+              <div className="w-0.5 h-2 bg-neuro-green animate-pulse delay-150" />
+            </div>
+            <span>Watch neurons change colors</span>
+          </div>
+        )}
       </div>
     </div>
   );
