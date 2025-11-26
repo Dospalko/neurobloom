@@ -270,7 +270,7 @@ export const useNeuralNetwork = () => {
             
             algorithmRunner.current.start(algorithmType);
             setNeuronsCreated(minNeurons);
-          }, 200);
+          }, 100);
           return;
         }
         
@@ -315,7 +315,7 @@ export const useNeuralNetwork = () => {
         setNeurons(prev => [...prev, neuron]);
         setNeuronsCreated(prev => prev + 1);
         addedCount++;
-      }, 50); // Pridávaj každých 50ms
+      }, 30); // Pridávaj neuróny rýchlejšie pre kratšiu animáciu
       
     } else {
       // Už máme dosť neurónov

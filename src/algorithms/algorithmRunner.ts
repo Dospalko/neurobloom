@@ -81,8 +81,8 @@ export class AlgorithmRunner {
 
   private wavePropaation(elapsed: number): void {
     const center = new THREE.Vector3(0, 0, 0);
-    const waveSpeed = 0.8; // POMALŠIA vlna - z 2 na 0.8
-    const waveWidth = 3.5; // ŠIRŠIA vlna pre lepšiu viditeľnosť
+    const waveSpeed = 0.5; // POMALŠIA vlna - z 2 na 0.8
+    const waveWidth = 4; // ŠIRŠIA vlna pre lepšiu viditeľnosť
     const currentRadius = elapsed * waveSpeed;
 
     this.neurons.forEach(neuron => {
@@ -101,15 +101,15 @@ export class AlgorithmRunner {
         // POMALŠÍ návrat k originálnej farbe
         const originalColor = this.originalColors.get(neuron.id);
         if (originalColor) {
-          neuron.color.lerp(originalColor, 0.05); // Pomalší návrat pre lepšiu viditeľnosť
+          neuron.color.lerp(originalColor, 0.03); // Pomalší návrat pre lepšiu viditeľnosť
         }
       }
     });
   }
 
   private spiralGrowth(elapsed: number): void {
-    const rotationSpeed = 0.6; // POMALŠIA rotácia - z 1.5 na 0.6
-    const expansionSpeed = 0.5; // POMALŠIA expanzia - z 1 na 0.5
+    const rotationSpeed = 0.35; // POMALŠIA rotácia - z 1.5 na 0.6
+    const expansionSpeed = 0.3; // POMALŠIA expanzia - z 1 na 0.5
     
     this.neurons.forEach(neuron => {
       const angle = Math.atan2(neuron.position.z, neuron.position.x);
@@ -127,7 +127,7 @@ export class AlgorithmRunner {
       neuron.activation = activation * expansionPhase * 0.9;
       
       // VÝRAZNEJŠÍ farebný prechod - nasilu!
-      const colorPhase = (angle + Math.PI + elapsed * 0.3) / (2 * Math.PI); // Pomalší farebný prechod
+      const colorPhase = (angle + Math.PI + elapsed * 0.2) / (2 * Math.PI); // Pomalší farebný prechod
       const normalizedPhase = colorPhase % 1;
       
       let spiralColor: THREE.Color;
@@ -143,7 +143,7 @@ export class AlgorithmRunner {
       if (activation > 0.4) { // Nižší threshold
         neuron.color.copy(spiralColor);
       } else {
-        neuron.color.lerp(spiralColor, 0.3); // Pomalší prechod
+        neuron.color.lerp(spiralColor, 0.2); // Pomalší prechod
       }
     });
   }
@@ -157,72 +157,72 @@ export class AlgorithmRunner {
     });
     
     const totalNeurons = sortedNeurons.length;
-    const cascadeDuration = 5; // dlhšie trvanie pre plynulosť
+    const cascadeDuration = 6; // DLHŠIE trvanie - z 5 na 8 sekúnd
     
     sortedNeurons.forEach((neuron, index) => {
       const progress = (index / totalNeurons) * cascadeDuration;
       const timeSinceActivation = elapsed - progress;
       
-      if (timeSinceActivation > 0 && timeSinceActivation < 1.5) {
+      if (timeSinceActivation > 0 && timeSinceActivation < 3) { // DLHŠIE svietenie - z 1.5 na 2.5
         // Plynulý nárast a pokles
-        const curve = Math.sin((timeSinceActivation / 1.5) * Math.PI);
-        neuron.activation = curve * 0.9;
+        const curve = Math.sin((timeSinceActivation / 3) * Math.PI);
+        neuron.activation = curve * 0.95; // Vyššia aktivácia
         
         // VÝRAZNEJŠÍ prechod zo zelenej do žltej/oranžovej - nasilu!
-        const colorPhase = timeSinceActivation / 1.5;
+        const colorPhase = timeSinceActivation / 3;
         const color = colorPhase < 0.5
           ? new THREE.Color('#00FF88')
           : new THREE.Color('#00FF88').lerp(new THREE.Color('#FFB74A'), (colorPhase - 0.5) * 2);
         
         neuron.color.copy(color); // Priama kópia!
       } else {
-        neuron.activation *= 0.95;
+        neuron.activation *= 0.98; // POMALŠÍ fade
         
-        // Plynulý návrat
+        // POMALŠÍ návrat
         const originalColor = this.originalColors.get(neuron.id);
         if (originalColor) {
-          neuron.color.lerp(originalColor, 0.1); // Rýchlejší návrat
+          neuron.color.lerp(originalColor, 0.03); // Pomalší návrat pre lepšiu viditeľnosť
         }
       }
     });
   }
 
   private pulseNetwork(elapsed: number): void {
-    const pulseFrequency = 0.8; // Pomalší pulz
+    const pulseFrequency = 0.25; // POMALŠÍ pulz - z 0.8 na 0.4
     
     this.neurons.forEach(neuron => {
       // Jemné variácie medzi neurónmi
       const phase = (neuron.position.x + neuron.position.y + neuron.position.z) * 0.05;
       const localPulse = (Math.sin(elapsed * pulseFrequency * Math.PI + phase) + 1) / 2;
       
-      // Jemnejšia aktivácia
-      neuron.activation = localPulse * 0.8;
+      // Vyššia aktivácia
+      neuron.activation = localPulse * 0.9;
       
       // VÝRAZNEJŠÍ farebný prechod - nasilu!
       const colorPhase = (Math.sin(elapsed * pulseFrequency * Math.PI * 0.3) + 1) / 2;
       const pulseColor = new THREE.Color('#FF6B9D').lerp(new THREE.Color('#B565FF'), colorPhase);
       
       // Priama kópia ak je pulz vysoký
-      if (localPulse > 0.6) {
+      if (localPulse > 0.5) { // Nižší threshold
         neuron.color.copy(pulseColor);
       } else {
-        neuron.color.lerp(pulseColor, 0.4);
+        neuron.color.lerp(pulseColor, 0.2); // Pomalší prechod
       }
     });
   }
 
   private randomWalker(elapsed: number): void {
-    const walkSpeed = 2; // Pomalšie
+    const walkSpeed = 0.8; // POMALŠIE - z 2 na 1.2
     const step = Math.floor(elapsed * walkSpeed);
     
-    // Jemný fade všetkých
+    // POMALŠÍ fade všetkých
     this.neurons.forEach(n => {
-      n.activation *= 0.92;
+      n.activation *= 0.98; // Pomalší fade - z 0.92 na 0.96
       
-      // Plynulý návrat k originálnej farbe
+      // POMALŠÍ návrat k originálnej farbe
       const originalColor = this.originalColors.get(n.id);
       if (originalColor) {
-        n.color.lerp(originalColor, 0.15); // Rýchlejší návrat
+        n.color.lerp(originalColor, 0.03); // Pomalší návrat - z 0.15 na 0.05
       }
     });
     
@@ -231,18 +231,18 @@ export class AlgorithmRunner {
       const randomIndex = Math.floor(Math.sin(step * 12.9898) * 43758.5453) % this.neurons.length;
       const neuron = this.neurons[Math.abs(randomIndex)];
       if (neuron) {
-        neuron.activation = 0.9;
+        neuron.activation = 0.95; // Vyššia aktivácia
         
         // VÝRAZNÁ oranžová - nasilu!
         const orangeColor = new THREE.Color('#FFB74A');
         neuron.color.copy(orangeColor);
         
-        // Jemnejšia aktivácia susedov
+        // ŠIRŠIA aktivácia susedov
         this.neurons.forEach(other => {
           const distance = neuron.position.distanceTo(other.position);
-          if (distance < 3.5 && distance > 0) {
-            const intensity = Math.pow(1 - (distance / 3.5), 2);
-            other.activation = Math.max(other.activation, intensity * 0.6);
+          if (distance < 4.5 && distance > 0) { // Väčší rozsah - z 3.5 na 4.5
+            const intensity = Math.pow(1 - (distance / 4.5), 2);
+            other.activation = Math.max(other.activation, intensity * 0.7); // Vyššia aktivácia
             
             // VÝRAZNÝ prechod do zelenej - nasilu!
             const greenColor = new THREE.Color('#00FF88');
