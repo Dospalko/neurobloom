@@ -59,6 +59,16 @@ const HomePage = () => {
                 <span>Start Simulation</span>
               </div>
             </button>
+
+            <button 
+              onClick={() => navigate('/playground')}
+              className="group relative px-6 py-2.5 bg-white/10 border border-white/30 rounded-lg font-semibold text-white text-sm transition-all duration-300 hover:scale-105 hover:bg-white/20 flex items-center gap-2"
+            >
+              <div className="relative flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-neuro-purple animate-pulse" />
+                <span>Playground (3D)</span>
+              </div>
+            </button>
             
             <button 
               onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}

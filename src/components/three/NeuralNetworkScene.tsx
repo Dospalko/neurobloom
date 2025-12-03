@@ -48,9 +48,16 @@ const GradientBackground = () => {
 interface NeuralNetworkSceneProps {
   neurons: NeuronType[];
   onNeuronClick?: (id: string) => void;
+  highlightedNeuronId?: string | null;
+  selectedNeuronId?: string | null;
 }
 
-const NeuralNetworkScene = ({ neurons, onNeuronClick }: NeuralNetworkSceneProps) => {
+const NeuralNetworkScene = ({
+  neurons,
+  onNeuronClick,
+  highlightedNeuronId,
+  selectedNeuronId,
+}: NeuralNetworkSceneProps) => {
   // Zozbieraj všetky spojenia
   const allConnections = neurons.flatMap((neuron) =>
     neuron.connections.map((conn) => ({ ...conn, neuronId: neuron.id }))
@@ -104,6 +111,8 @@ const NeuralNetworkScene = ({ neurons, onNeuronClick }: NeuralNetworkSceneProps)
           <Neuron
             key={neuron.id}
             neuron={neuron}
+            isHighlighted={highlightedNeuronId === neuron.id}
+            isSelected={selectedNeuronId === neuron.id}
             onClick={() => onNeuronClick?.(neuron.id)}
           />
         ))}

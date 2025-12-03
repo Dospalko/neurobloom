@@ -14,9 +14,12 @@
   }
 
   body {
-    @apply m-0 p-0 min-h-screen font-sans antialiased;
-    @apply bg-neuro-dark;
-    @apply text-gray-100 overflow-x-hidden;
+    @apply m-0 p-0 min-h-screen font-sans antialiased text-gray-100 overflow-x-hidden;
+    background: radial-gradient(circle at 20% 20%, rgba(0, 212, 255, 0.12), transparent 25%),
+      radial-gradient(circle at 80% 10%, rgba(181, 101, 255, 0.15), transparent 22%),
+      radial-gradient(circle at 70% 70%, rgba(0, 255, 136, 0.12), transparent 25%),
+      #0b0c10;
+    background-attachment: fixed;
   }
 
   #root {
@@ -43,6 +46,18 @@
 @layer utilities {
   .glass-effect {
     @apply bg-white/5 backdrop-blur-md border border-neuro-blue/20;
+  }
+
+  .panel {
+    @apply rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-lg shadow-black/20;
+  }
+
+  .panel-subtle {
+    @apply rounded-xl border border-white/5 bg-white/5;
+  }
+
+  .tag {
+    @apply inline-flex items-center gap-2 px-2.5 py-1 rounded-full border text-[11px] font-semibold uppercase tracking-wide;
   }
 
   .glow-blue {

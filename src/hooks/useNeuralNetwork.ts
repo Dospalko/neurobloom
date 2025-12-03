@@ -18,9 +18,19 @@ import {
 import { AlgorithmRunner } from "../algorithms/algorithmRunner";
 import { AlgorithmType, ALGORITHMS } from "../algorithms/types";
 
+export type ActivationFocus = {
+  id: string;
+  activation: number;
+  type: Neuron["type"];
+  position: { x: number; y: number; z: number };
+  connectionCount: number;
+  trainingCount: number;
+};
+
 export const useNeuralNetwork = () => {
   const [neurons, setNeurons] = useState<Neuron[]>([]);
   const [mode, setMode] = useState<SimulationMode>("idle");
+  const [activationFocus, setActivationFocus] = useState<ActivationFocus | null>(null);
   const [stats, setStats] = useState<NetworkStats>({
     totalNeurons: 0,
     totalConnections: 0,
@@ -389,6 +399,36 @@ export const useNeuralNetwork = () => {
     }
   }, [neurons]);
 
+  // Track najaktívnejší neurón pre UI
+  useEffect(() => {
+    if (neurons.length === 0) {
+      setActivationFocus(null);
+      return;
+    }
+
+    const top = neurons.reduce((best, n) => (n.activation > best.activation ? n : best), neurons[0]);
+    const nextFocus: ActivationFocus = {
+      id: top.id,
+      activation: top.activation,
+      type: top.type,
+      position: { x: top.position.x, y: top.position.y, z: top.position.z },
+      connectionCount: top.connections.length,
+      trainingCount: top.trainingCount,
+    };
+
+    setActivationFocus((prev) => {
+      if (
+        prev &&
+        prev.id === nextFocus.id &&
+        Math.abs(prev.activation - nextFocus.activation) < 0.01 &&
+        prev.trainingCount === nextFocus.trainingCount
+      ) {
+        return prev;
+      }
+      return nextFocus;
+    });
+  }, [neurons]);
+
   // Starnutie neurónov (každú sekundu)
   useEffect(() => {
     if (ageInterval.current) clearInterval(ageInterval.current);
@@ -427,5 +467,6 @@ export const useNeuralNetwork = () => {
     currentAlgorithm,
     algorithmProgress,
     neuronsCreated,
+    activationFocus,
   };
 };

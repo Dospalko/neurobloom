@@ -5,10 +5,12 @@ import { Neuron as NeuronType } from "../../simulation/types";
 
 interface NeuronProps {
   neuron: NeuronType;
+  isHighlighted?: boolean;
+  isSelected?: boolean;
   onClick?: () => void;
 }
 
-const Neuron = ({ neuron, onClick }: NeuronProps) => {
+const Neuron = ({ neuron, onClick, isHighlighted = false, isSelected = false }: NeuronProps) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const glowRef = useRef<THREE.Mesh>(null);
   const outerGlowRef = useRef<THREE.Mesh>(null);
@@ -31,7 +33,8 @@ const Neuron = ({ neuron, onClick }: NeuronProps) => {
     // Jemné, plynulé zmeny veľkosti
     const isActive = neuron.activation > 0.5;
     const pulse = 1 + neuron.activation * 0.6;
-    meshRef.current.scale.setScalar(pulse * 0.25);
+    const highlightBoost = isSelected ? 1.3 : isHighlighted ? 1.15 : 1;
+    meshRef.current.scale.setScalar(pulse * 0.25 * highlightBoost);
 
     // Pomalá, plynulá rotácia
     meshRef.current.rotation.y += 0.01 * neuron.health;
@@ -39,13 +42,13 @@ const Neuron = ({ neuron, onClick }: NeuronProps) => {
     // Vnútorný glow - jemné pulzovanie
     const glowPulse = 1 + Math.sin(state.clock.elapsedTime * 1.5) * 0.1;
     glowRef.current.scale.setScalar(
-      glowPulse * 0.35 * (0.5 + neuron.activation * 0.5)
+      glowPulse * 0.35 * (0.5 + neuron.activation * 0.5) * highlightBoost
     );
 
     // Vonkajší glow - veľmi jemné
     const outerGlowScale = 1 + Math.sin(state.clock.elapsedTime * 1) * 0.15;
     outerGlowRef.current.scale.setScalar(
-      outerGlowScale * 0.6 * (1 + neuron.activation * 0.4)
+      outerGlowScale * 0.6 * (1 + neuron.activation * 0.4) * highlightBoost
     );
 
     // Plynulé prechody farieb bez dramatických skokov
@@ -57,7 +60,7 @@ const Neuron = ({ neuron, onClick }: NeuronProps) => {
     
     material.color = healthColor;
     material.emissive = healthColor;
-    material.emissiveIntensity = 3 + neuron.activation * 4;
+    material.emissiveIntensity = (3 + neuron.activation * 4) * (isSelected ? 1.2 : isHighlighted ? 1.1 : 1);
     
     // Jemný kruh pri vysokej aktivácii
     if (activeRingRef.current) {
