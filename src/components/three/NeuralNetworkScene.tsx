@@ -1,5 +1,5 @@
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Environment, PerspectiveCamera, Stars, Sparkles } from "@react-three/drei";
+import { OrbitControls, Environment, PerspectiveCamera, Stars, Sparkles, PerformanceMonitor } from "@react-three/drei";
 import * as THREE from "three";
 import { Neuron as NeuronType } from "../../simulation/types";
 import Neuron from "./Neuron";
@@ -74,6 +74,7 @@ const NeuralNetworkScene = ({
         dpr={[1, 2]}
       >
         <color attach="background" args={["#050510"]} />
+        <PerformanceMonitor />
         
         <PerspectiveCamera makeDefault position={[0, 0, 15]} fov={60} />
         

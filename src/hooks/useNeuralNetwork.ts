@@ -135,84 +135,117 @@ export const useNeuralNetwork = () => {
     );
   }, []);
 
+  const [currentPattern, setCurrentPattern] = useState<string | null>(null);
+
   // Spustenie trénovania
   const startTraining = useCallback(() => {
     setMode("training");
 
     if (trainingInterval.current) clearInterval(trainingInterval.current);
+    
+    let tick = 0;
 
     trainingInterval.current = setInterval(() => {
+      tick++;
+      
+      // Pattern Generation: Switch pattern every 20 ticks (approx 4 seconds)
+      // Pattern A: Activate Input Neurons 0, 1, 2
+      // Pattern B: Activate Input Neurons 3, 4, 5
+      const patternPhase = Math.floor(tick / 20) % 2; 
+      const patternName = patternPhase === 0 ? "Pattern A (Even Inputs)" : "Pattern B (Odd Inputs)";
+      
+      // Update state only if changed to avoid excessive re-renders
+      setCurrentPattern(prev => prev !== patternName ? patternName : prev);
+
       setNeurons((prev) => {
-        // Optimalizácia - použij batch update
-        const updated = prev.map((neuron) => {
-          // Simulácia aktivácie
-          const inputs = new Map<string, number>();
-          
-          // Len ak má spojenia
-          if (neuron.connections.length === 0) {
-            return {
-              ...neuron,
-              activation: Math.random() * 0.5, // Náhodná aktivácia pre vstupné
-              trainingCount: neuron.trainingCount + 1,
-            };
-          }
-
-          neuron.connections.forEach((conn) => {
-            const sourceNeuron = prev.find((n) => n.id === conn.from);
-            if (sourceNeuron) {
-              inputs.set(conn.from, sourceNeuron.activation);
-            }
-          });
-
-          const newActivation = activateNeuron(neuron, inputs);
-
-          // Update weights - jednoduchšie výpočty
-          const updatedConnections = neuron.connections.map((conn) => {
-            const error = (Math.random() - 0.5) * 0.1; // Menšia chyba
-            const newWeight = updateConnectionWeight(
-              conn,
-              error,
-              neuron.learningRate
-            );
-            return {
-              ...conn,
-              weight: newWeight,
-              strength: Math.abs(newWeight),
-              lastActivation: newActivation,
-            };
-          });
-
-          return {
-            ...neuron,
-            activation: newActivation,
-            trainingCount: neuron.trainingCount + 1,
-            connections: updatedConnections,
-            health: calculateNeuronHealth({
-              ...neuron,
-              trainingCount: neuron.trainingCount + 1,
-            }),
-          };
+        // 1. Calculate Activations (Forward Pass)
+        // We need to do this in topological order or just synchronous update?
+        // Synchronous update (cellular automaton style) is easier for this visual.
+        
+        // First, set inputs based on pattern
+        const inputNeurons = prev.filter(n => n.type === 'input');
+        const hiddenOutputNeurons = prev.filter(n => n.type !== 'input');
+        
+        // Update Inputs
+        const updatedInputs = inputNeurons.map((neuron, idx) => {
+             let targetActivation = 0.1; // Noise
+             if (patternPhase === 0) {
+                 if (idx % 2 === 0) targetActivation = 0.9; // Pattern A: Evens
+             } else {
+                 if (idx % 2 === 1) targetActivation = 0.9; // Pattern B: Odds
+             }
+             
+             return {
+                 ...neuron,
+                 activation: neuron.activation * 0.8 + targetActivation * 0.2, // Smooth transition
+                 trainingCount: neuron.trainingCount + 1
+             };
         });
 
-        return updated;
+        // Update Hidden/Output (based on PREVIOUS state of inputs/others)
+        // We use the 'prev' array for source values to simulate simultaneous firing
+        const updatedHiddenOutput = hiddenOutputNeurons.map(neuron => {
+             const inputs = new Map<string, number>();
+             neuron.connections.forEach(conn => {
+                 const source = prev.find(n => n.id === conn.from);
+                 if (source) inputs.set(conn.from, source.activation);
+             });
+             
+             const newActivation = activateNeuron(neuron, inputs);
+             
+             // Hebbian Learning: Update weights based on correlation
+             const updatedConnections = neuron.connections.map(conn => {
+                 const source = prev.find(n => n.id === conn.from);
+                 if (!source) return conn;
+                 
+                 const newWeight = updateConnectionWeight(
+                     conn,
+                     source.activation,
+                     newActivation,
+                     neuron.learningRate
+                 );
+                 
+                 return {
+                     ...conn,
+                     weight: newWeight,
+                     strength: Math.abs(newWeight),
+                     lastActivation: newActivation
+                 };
+             });
+             
+             return {
+                 ...neuron,
+                 activation: newActivation,
+                 connections: updatedConnections,
+                 trainingCount: neuron.trainingCount + 1,
+                 health: calculateNeuronHealth({
+                    ...neuron,
+                    trainingCount: neuron.trainingCount + 1
+                 })
+             };
+        });
+        
+        return [...updatedInputs, ...updatedHiddenOutput];
       });
 
       setStats((prev) => ({
         ...prev,
         trainingEpochs: prev.trainingEpochs + 1,
-        accuracy: Math.min(0.99, prev.accuracy + 0.002), // Rýchlejší progres
+        // Mock accuracy for visual satisfaction
+        accuracy: Math.min(0.99, prev.accuracy + (tick % 100 === 0 ? 0.01 : 0)), 
         ...detectTrainingIssues(
           Math.min(0.99, prev.accuracy + 0.002),
           Math.min(0.95, prev.accuracy),
           prev.trainingEpochs + 1
         ),
       }));
-    }, 50); // Rýchlejší interval (50ms namiesto 100ms)
+    }, 200); // Slower interval (200ms) for visibility
   }, []);
 
   // Zastavenie trénovania
   const stopTraining = useCallback(() => {
     setMode("idle");
+    setCurrentPattern(null);
     if (trainingInterval.current) {
       clearInterval(trainingInterval.current);
       trainingInterval.current = null;
@@ -468,5 +501,6 @@ export const useNeuralNetwork = () => {
     algorithmProgress,
     neuronsCreated,
     activationFocus,
+    currentPattern,
   };
 };

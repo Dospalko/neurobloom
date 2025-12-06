@@ -63,15 +63,25 @@ export const activateNeuron = (
   return sigmoid(sum);
 };
 
-// Aktualizácia váhy spojenia (backpropagation)
+// Hebbian Learning: Neurons that fire together, wire together
+// Oja's Rule (stabilized Hebbian): dw = alpha * (y * (x - y * w))
 export const updateConnectionWeight = (
   connection: Connection,
-  error: number,
+  sourceActivation: number,
+  targetActivation: number,
   learningRate: number
 ): number => {
-  const delta = error * learningRate;
+  // Standard Hebbian: delta = rate * source * target
+  // But this grows indefinitely. We use a simplified Oja's rule or decay.
+  
+  // Let's use simple Hebbian with decay to keep it interesting but bounded
+  const hebbianTerm = sourceActivation * targetActivation;
+  const decayTerm = 0.05 * connection.weight * targetActivation * targetActivation; // Active decay
+  
+  const delta = learningRate * (hebbianTerm - decayTerm);
+  
   const newWeight = connection.weight + delta;
-  return Math.max(-1, Math.min(1, newWeight)); // clamp medzi -1 a 1
+  return Math.max(-1, Math.min(1, newWeight)); // clamp
 };
 
 // Výpočet zdravia neurónu na základe veku a tréningu

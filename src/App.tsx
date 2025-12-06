@@ -1,17 +1,37 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import HomePage from "./pages/HomePage";
-import SimulationPage from "./pages/SimulationPage";
-import PlaygroundPage from "./pages/PlaygroundPage";
+import { Suspense, lazy } from "react";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
+import LoadingScreen from "./components/LoadingScreen";
+import PageTransition from "./components/PageTransition";
 import "./styles/global.css";
+
+// Lazy load pages
+const HomePage = lazy(() => import("./pages/HomePage"));
+const SimulationPage = lazy(() => import("./pages/SimulationPage"));
+const PlaygroundPage = lazy(() => import("./pages/PlaygroundPage"));
+const ParticleSystemPage = lazy(() => import("./pages/ParticleSystemPage"));
+
+const AnimatedRoutes = () => {
+  const location = useLocation();
+  
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<PageTransition><HomePage /></PageTransition>} />
+        <Route path="/simulation" element={<PageTransition><SimulationPage /></PageTransition>} />
+        <Route path="/playground" element={<PageTransition><PlaygroundPage /></PageTransition>} />
+        <Route path="/particles" element={<PageTransition><ParticleSystemPage /></PageTransition>} />
+      </Routes>
+    </AnimatePresence>
+  );
+};
 
 const App = () => {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/simulation" element={<SimulationPage />} />
-        <Route path="/playground" element={<PlaygroundPage />} />
-      </Routes>
+      <Suspense fallback={<LoadingScreen onFinished={() => {}} />}>
+        <AnimatedRoutes />
+      </Suspense>
     </Router>
   );
 };

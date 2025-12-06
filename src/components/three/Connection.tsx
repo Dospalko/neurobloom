@@ -10,7 +10,9 @@ interface ConnectionProps {
 }
 
 const Connection = ({ connection, neurons }: ConnectionProps) => {
-  const lineRef = useRef<THREE.Line>(null);
+  // Create stable Line instance
+  const line = useMemo(() => new THREE.Line(), []);
+  const geometryRef = useRef<THREE.BufferGeometry>(null);
 
   const { fromNeuron, toNeuron } = useMemo(() => {
     return {
@@ -19,20 +21,44 @@ const Connection = ({ connection, neurons }: ConnectionProps) => {
     };
   }, [connection, neurons]);
 
-  useFrame((state) => {
-    if (!lineRef.current || !fromNeuron || !toNeuron) return;
+  // Initial positions
+  const initialPoints = useMemo(() => {
+    if (!fromNeuron || !toNeuron) return [new THREE.Vector3(), new THREE.Vector3()];
+    return [fromNeuron.position, toNeuron.position];
+  }, [fromNeuron, toNeuron]);
 
-    // Update pozícií
-    const positions = lineRef.current.geometry.attributes.position;
-    positions.setXYZ(0, fromNeuron.position.x, fromNeuron.position.y, fromNeuron.position.z);
-    positions.setXYZ(1, toNeuron.position.x, toNeuron.position.y, toNeuron.position.z);
-    positions.needsUpdate = true;
+  // Initialize geometry once
+  useMemo(() => {
+    const geometry = new THREE.BufferGeometry().setFromPoints(initialPoints);
+    line.geometry = geometry;
+    line.material = new THREE.LineBasicMaterial({
+      transparent: true,
+      opacity: 0.5,
+      linewidth: 2,
+      color: connection.weight > 0 ? "#6FB5FF" : "#B589FF"
+    });
+  }, [line, initialPoints, connection.weight]);
+
+  useFrame((state) => {
+    if (!fromNeuron || !toNeuron) return;
+
+    // Update pozícií directly on buffer attribute
+    const positions = line.geometry.attributes.position;
+    if (positions) {
+      positions.setXYZ(0, fromNeuron.position.x, fromNeuron.position.y, fromNeuron.position.z);
+      positions.setXYZ(1, toNeuron.position.x, toNeuron.position.y, toNeuron.position.z);
+      positions.needsUpdate = true;
+    }
 
     // Plynulé zmeny opacity
-    const material = lineRef.current.material as THREE.LineBasicMaterial;
+    const material = line.material as THREE.LineBasicMaterial;
     const avgActivation = (fromNeuron.activation + toNeuron.activation) / 2;
     
-    material.opacity = 0.3 + avgActivation * connection.strength * 0.5;
+    // Signal flow pulse effect
+    const pulse = Math.sin(state.clock.elapsedTime * 8) * 0.5 + 0.5; // Faster pulse
+    const flowEffect = avgActivation > 0.3 ? pulse * avgActivation * 0.4 : 0;
+    
+    material.opacity = 0.3 + avgActivation * connection.strength * 0.5 + flowEffect;
 
     // Jemné farebné prechody
     const baseColor = connection.weight > 0 
@@ -40,25 +66,12 @@ const Connection = ({ connection, neurons }: ConnectionProps) => {
       : new THREE.Color("#B565FF");
     
     const activeColor = baseColor.clone().multiplyScalar(1 + avgActivation * 0.5);
-    material.color = activeColor;
+    material.color.copy(activeColor);
   });
 
   if (!fromNeuron || !toNeuron) return null;
 
-  const points = [fromNeuron.position, toNeuron.position];
-  const geometry = new THREE.BufferGeometry().setFromPoints(points);
-
-  return (
-    <primitive object={new THREE.Line(geometry, new THREE.LineBasicMaterial())} ref={lineRef}>
-      <lineBasicMaterial
-        attach="material"
-        transparent
-        opacity={0.5}
-        linewidth={2}
-        color={connection.weight > 0 ? "#6FB5FF" : "#B589FF"}
-      />
-    </primitive>
-  );
+  return <primitive object={line} />;
 };
 
 export default Connection;

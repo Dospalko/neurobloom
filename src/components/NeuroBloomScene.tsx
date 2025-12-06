@@ -6,7 +6,8 @@ import {
   PointMaterial,
   GradientTexture,
   Float,
-  Html
+  Html,
+  PerformanceMonitor
 } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -379,6 +380,7 @@ const NeuroBloomScene = () => (
     gl={{ antialias: true }}
   >
     <color attach="background" args={["#050410"]} />
+    <PerformanceMonitor />
     <SceneLighting />
     <BackgroundField />
     <NeuroNetwork />

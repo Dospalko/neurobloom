@@ -29,6 +29,7 @@ const SimulationPage = () => {
     algorithmProgress,
     neuronsCreated,
     activationFocus,
+    currentPattern,
   } = useNeuralNetwork();
 
   useEffect(() => {
@@ -64,8 +65,8 @@ const SimulationPage = () => {
             </div>
             <div className="flex items-center gap-2">
               <div className="tag border-white/20 text-white bg-white/5">
-                <span className="w-2 h-2 rounded-full bg-neuro-green animate-pulse inline-block" />
-                {mode === "training" ? "Training" : isAlgorithmRunning ? "Algorithm" : "Idle"}
+                <span className={`w-2 h-2 rounded-full ${mode === "training" ? "bg-neuro-green animate-pulse" : "bg-gray-500"} inline-block`} />
+                {mode === "training" ? (currentPattern || "Training") : isAlgorithmRunning ? "Algorithm" : "Idle"}
               </div>
               <div className="tag border-white/15 text-gray-300 bg-white/5">v1.0</div>
             </div>

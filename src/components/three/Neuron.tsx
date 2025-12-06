@@ -16,6 +16,10 @@ const Neuron = ({ neuron, onClick, isHighlighted = false, isSelected = false }: 
   const outerGlowRef = useRef<THREE.Mesh>(null);
   const activeRingRef = useRef<THREE.Mesh>(null);
   
+  // Reusable objects to avoid GC
+  const tempColor = useMemo(() => new THREE.Color(), []);
+  const targetColor = useMemo(() => new THREE.Color(), []);
+
   // Výrazné farebné materiály - nie biele!
   const material = useMemo(() => 
     new THREE.MeshStandardMaterial({
@@ -53,13 +57,21 @@ const Neuron = ({ neuron, onClick, isHighlighted = false, isSelected = false }: 
 
     // Plynulé prechody farieb bez dramatických skokov
     const baseMultiplier = 1.8 + neuron.activation * 0.7;
-    const activeColor = neuron.color.clone().multiplyScalar(baseMultiplier);
     
-    const healthColor = activeColor.clone();
-    healthColor.lerp(new THREE.Color("#ff4444"), 1 - neuron.health);
+    // Use copy instead of clone
+    targetColor.copy(neuron.color).multiplyScalar(baseMultiplier);
     
-    material.color = healthColor;
-    material.emissive = healthColor;
+    // Flash effect for high activation (firing)
+    if (neuron.activation > 0.7) {
+        tempColor.setHex(0xffffff);
+        targetColor.lerp(tempColor, (neuron.activation - 0.7) * 2.5);
+    }
+    
+    tempColor.setHex(0xff4444);
+    targetColor.lerp(tempColor, 1 - neuron.health);
+    
+    material.color.copy(targetColor);
+    material.emissive.copy(targetColor);
     material.emissiveIntensity = (3 + neuron.activation * 4) * (isSelected ? 1.2 : isHighlighted ? 1.1 : 1);
     
     // Jemný kruh pri vysokej aktivácii
@@ -76,9 +88,9 @@ const Neuron = ({ neuron, onClick, isHighlighted = false, isSelected = false }: 
 
   return (
     <group position={neuron.position}>
-      {/* Vonkajší glow - jemný */}
+      {/* Vonkajší glow - jemný - Reduced geometry */}
       <mesh ref={outerGlowRef}>
-        <sphereGeometry args={[1, 16, 16]} />
+        <sphereGeometry args={[1, 12, 12]} />
         <meshBasicMaterial
           color={neuron.color.clone().multiplyScalar(1.6)}
           transparent
@@ -87,9 +99,9 @@ const Neuron = ({ neuron, onClick, isHighlighted = false, isSelected = false }: 
         />
       </mesh>
 
-      {/* Vnútorný glow - príjemná žiara */}
+      {/* Vnútorný glow - príjemná žiara - Reduced geometry */}
       <mesh ref={glowRef}>
-        <sphereGeometry args={[1, 16, 16]} />
+        <sphereGeometry args={[1, 12, 12]} />
         <meshBasicMaterial
           color={neuron.color.clone().multiplyScalar(2)}
           transparent
@@ -98,14 +110,14 @@ const Neuron = ({ neuron, onClick, isHighlighted = false, isSelected = false }: 
         />
       </mesh>
 
-      {/* Hlavný neurón */}
+      {/* Hlavný neurón - Standard geometry */}
       <mesh ref={meshRef} onClick={onClick} material={material}>
-        <sphereGeometry args={[1, 20, 20]} />
+        <sphereGeometry args={[1, 16, 16]} />
       </mesh>
 
-      {/* Jemné jadro */}
+      {/* Jemné jadro - Reduced geometry */}
       <mesh scale={0.6}>
-        <sphereGeometry args={[1, 12, 12]} />
+        <sphereGeometry args={[1, 8, 8]} />
         <meshBasicMaterial 
           color={neuron.color.clone().multiplyScalar(2.2)} 
           opacity={0.7 + neuron.activation * 0.2} 
@@ -115,7 +127,7 @@ const Neuron = ({ neuron, onClick, isHighlighted = false, isSelected = false }: 
 
       {/* Jemný kruh pri vysokej aktivácii */}
       <mesh ref={activeRingRef} rotation={[Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.95, 1.05, 32]} />
+        <ringGeometry args={[0.95, 1.05, 24]} />
         <meshBasicMaterial
           color={neuron.color.clone().multiplyScalar(2)}
           transparent
