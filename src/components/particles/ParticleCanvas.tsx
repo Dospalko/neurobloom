@@ -10,9 +10,10 @@ interface ParticleCanvasProps {
   color: string;
   handPos: { x: number, y: number };
   handVelocity: number;
+  trigger?: string | null;
 }
 
-const ParticleSystem: React.FC<ParticleCanvasProps> = ({ tension, template, color, handPos, handVelocity }) => {
+const ParticleSystem: React.FC<ParticleCanvasProps> = ({ tension, template, color, handPos, handVelocity, trigger }) => {
   const pointsRef = useRef<THREE.Points>(null);
   const count = 3000; 
 
@@ -118,6 +119,15 @@ const ParticleSystem: React.FC<ParticleCanvasProps> = ({ tension, template, colo
 
   // Smooth velocity state
   const smoothedVelocity = useRef(0);
+  
+  // Trigger state management
+  const triggerRef = useRef<{ type: string | null, time: number }>({ type: null, time: 0 });
+
+  useEffect(() => {
+    if (trigger) {
+        triggerRef.current = { type: trigger, time: Date.now() };
+    }
+  }, [trigger]);
 
   useFrame((state) => {
     if (!pointsRef.current) return;
@@ -134,8 +144,19 @@ const ParticleSystem: React.FC<ParticleCanvasProps> = ({ tension, template, colo
     // Smooth out velocity input
     smoothedVelocity.current = THREE.MathUtils.lerp(smoothedVelocity.current, handVelocity, 0.1);
     
+    // Check for active trigger (duration 1 second)
+    const timeSinceTrigger = Date.now() - triggerRef.current.time;
+    const isTriggerActive = triggerRef.current.type === 'fireball' && timeSinceTrigger < 1000;
+    
     // Velocity/Explosion factor
-    const explosionForce = Math.min(smoothedVelocity.current * 3.0, 8.0); 
+    // Combine hand velocity OR trigger force
+    let explosionForce = Math.min(smoothedVelocity.current * 3.0, 8.0); 
+    
+    if (isTriggerActive) {
+        // Create a blast wave effect based on time
+        const wave = 1 - (timeSinceTrigger / 1000); // 1.0 down to 0.0
+        explosionForce = Math.max(explosionForce, wave * 15.0); // Massive force for fireball
+    }
 
     // Physics Constants
     const springStrength = 0.05; // How fast they return to shape
@@ -255,7 +276,8 @@ const ParticleSystem: React.FC<ParticleCanvasProps> = ({ tension, template, colo
 export const ParticleCanvas: React.FC<ParticleCanvasProps> = (props) => {
   return (
     <Canvas camera={{ position: [0, 0, 15], fov: 60 }}>
-      <color attach="background" args={['#000000']} />
+      {/* Dark background for better contrast */}
+      <color attach="background" args={['#050510']} />
       <ambientLight intensity={0.5} />
       <ParticleSystem {...props} />
       <OrbitControls enableZoom={false} enablePan={false} />
