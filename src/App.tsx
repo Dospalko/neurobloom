@@ -10,6 +10,7 @@ const HomePage = lazy(() => import("./pages/HomePage"));
 const SimulationPage = lazy(() => import("./pages/SimulationPage"));
 const PlaygroundPage = lazy(() => import("./pages/PlaygroundPage"));
 const ParticleSystemPage = lazy(() => import("./pages/ParticleSystemPage"));
+const NeuralTutorialPage = lazy(() => import("./pages/NeuralTutorialPage"));
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -21,6 +22,7 @@ const AnimatedRoutes = () => {
         <Route path="/simulation" element={<PageTransition><SimulationPage /></PageTransition>} />
         <Route path="/playground" element={<PageTransition><PlaygroundPage /></PageTransition>} />
         <Route path="/particles" element={<PageTransition><ParticleSystemPage /></PageTransition>} />
+        <Route path="/tutorial" element={<PageTransition><NeuralTutorialPage /></PageTransition>} />
       </Routes>
     </AnimatePresence>
   );

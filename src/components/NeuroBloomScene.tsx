@@ -6,7 +6,6 @@ import {
   PointMaterial,
   GradientTexture,
   Float,
-  Html,
   PerformanceMonitor
 } from "@react-three/drei";
 import * as THREE from "three";
@@ -366,13 +365,7 @@ const SceneLighting = () => (
   </>
 );
 
-const SceneOverlay = () => (
-  <Html pointerEvents="none" center position={[0, -3, 0]}>
-    <div className="scene-caption">
-      uči sa · vyvíja · starne · adaptuje sa
-    </div>
-  </Html>
-);
+
 
 const NeuroBloomScene = () => (
   <Canvas
@@ -384,7 +377,6 @@ const NeuroBloomScene = () => (
     <SceneLighting />
     <BackgroundField />
     <NeuroNetwork />
-    <SceneOverlay />
     <OrbitControls
       enablePan={false}
       enableZoom={false}

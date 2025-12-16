@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type InteractionMode = 'both' | 'camera' | 'voice';
+export type InteractionMode = 'camera' | 'voice';
 
 interface InteractionModeSelectorProps {
   mode: InteractionMode;
@@ -32,19 +32,6 @@ export const InteractionModeSelector: React.FC<InteractionModeSelectorProps> = (
         }`}
       >
         🎙️ Voice
-      </button>
-
-      <div className="w-px h-4 bg-white/10" />
-
-      <button
-        onClick={() => onChange('both')}
-        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-          mode === 'both' 
-            ? 'bg-purple-500/20 text-purple-400 border border-purple-500/50 shadow-[0_0_10px_rgba(168,85,247,0.2)]' 
-            : 'text-gray-400 hover:text-white hover:bg-white/5'
-        }`}
-      >
-        🚀 Both
       </button>
     </div>
   );

@@ -16,18 +16,18 @@ const ParticleSystemPage: React.FC = () => {
   const [triggerCommand, setTriggerCommand] = useState<string | null>(null);
   
   // Interaction Mode State
-  const [interactionMode, setInteractionMode] = useState<InteractionMode>('both');
+  const [interactionMode, setInteractionMode] = useState<InteractionMode>('camera');
 
   const handleTensionChange = useCallback((newTension: number) => {
     // Only update tension if camera is allowed
-    if (interactionMode === 'camera' || interactionMode === 'both') {
+    if (interactionMode === 'camera') {
         setTension(newTension);
     }
   }, [interactionMode]);
 
   const handleHandMove = useCallback((x: number, y: number, velocity: number) => {
       // Only update positions if camera is allowed
-      if (interactionMode === 'camera' || interactionMode === 'both') {
+      if (interactionMode === 'camera') {
           setHandPos({ x, y });
           setHandVelocity(velocity);
       } else {
@@ -38,7 +38,7 @@ const ParticleSystemPage: React.FC = () => {
 
   const handleVoiceCommand = useCallback((command: string) => {
     // Only process voice if voice is allowed
-    if (interactionMode === 'voice' || interactionMode === 'both') {
+    if (interactionMode === 'voice') {
         setTriggerCommand(command);
         
         // Clear trigger after a short delay so it can be re-triggered
@@ -71,11 +71,10 @@ const ParticleSystemPage: React.FC = () => {
         <div className="absolute top-24 left-1/2 transform -translate-x-1/2 text-white/30 text-xs font-mono tracking-widest uppercase pointer-events-none">
              {interactionMode === 'camera' && "Control with Hand Gestures"}
              {interactionMode === 'voice' && "Control with Voice Commands"}
-             {interactionMode === 'both' && "Control with Hand or Voice"}
         </div>
         
         {/* Visual Cursor (Only visible if camera interaction is active) */}
-        {(interactionMode === 'camera' || interactionMode === 'both') && (
+        {(interactionMode === 'camera') && (
             <div 
                 className="absolute w-6 h-6 rounded-full border-2 border-red-500 bg-red-500/30 transform -translate-x-1/2 -translate-y-1/2 transition-transform duration-75"
                 style={{ 
@@ -94,7 +93,7 @@ const ParticleSystemPage: React.FC = () => {
           </div>
 
           {/* Voice Tracker - Top Right (Visible if active) */}
-          {(interactionMode === 'voice' || interactionMode === 'both') && (
+          {(interactionMode === 'voice') && (
                <VoiceTracker onCommand={handleVoiceCommand} />
           )}
 

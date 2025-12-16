@@ -24,7 +24,7 @@ const Footer = () => {
           
           {/* Technologies */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Stack</h4>
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Technológie</h4>
             <ul className="space-y-1.5 text-xs text-gray-500 font-mono">
               <li className="hover:text-neuro-blue transition-colors cursor-pointer">• React 18</li>
               <li className="hover:text-neuro-blue transition-colors cursor-pointer">• Three.js + R3F</li>
@@ -36,12 +36,12 @@ const Footer = () => {
           
           {/* Features */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Features</h4>
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Funkcie</h4>
             <ul className="space-y-1.5 text-xs text-gray-500 font-mono">
-              <li className="hover:text-neuro-purple transition-colors cursor-pointer">• Real-time growth</li>
-              <li className="hover:text-neuro-purple transition-colors cursor-pointer">• Adaptive learning</li>
-              <li className="hover:text-neuro-purple transition-colors cursor-pointer">• Neural plasticity</li>
-              <li className="hover:text-neuro-purple transition-colors cursor-pointer">• Live simulation</li>
+              <li className="hover:text-neuro-purple transition-colors cursor-pointer">• Rast v reálnom čase</li>
+              <li className="hover:text-neuro-purple transition-colors cursor-pointer">• Adaptívne učenie</li>
+              <li className="hover:text-neuro-purple transition-colors cursor-pointer">• Neurálna plasticita</li>
+              <li className="hover:text-neuro-purple transition-colors cursor-pointer">• Živá simulácia</li>
             </ul>
           </div>
         </div>
@@ -49,7 +49,7 @@ const Footer = () => {
         {/* Bottom bar */}
         <div className="pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-3">
           <p className="text-xs text-gray-600 font-mono">
-            © {currentYear} NeuroBloom · <span className="text-gray-500">Educational project</span>
+            © {currentYear} NeuroBloom · <span className="text-gray-500">Vzdelávací projekt</span>
           </p>
           <div className="flex items-center gap-2">
             <div className="flex gap-1">
