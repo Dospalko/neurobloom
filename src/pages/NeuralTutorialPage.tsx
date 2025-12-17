@@ -83,27 +83,27 @@ const NeuralTutorialPage = () => {
             </div>
         </nav>
 
-        {/* Content Card (Bottom Left or Center based on design, sticking to Left for overlay style) */}
-        <div className="flex items-end justify-between pointer-events-auto pb-10">
+        {/* Content Card (Bottom Left, smaller to not block output) */}
+        <div className="flex items-end justify-start pointer-events-auto pb-10">
             <motion.div 
                key={currentStep}
                initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                exit={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
                transition={{ duration: 0.6 }}
-               className="max-w-xl bg-black/60 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl relative overflow-hidden"
+               className="max-w-md w-full bg-black/40 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-2xl relative overflow-hidden"
             >
                <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-neuro-cyan to-neuro-purple" />
                <div className="absolute -right-10 -top-10 w-32 h-32 bg-neuro-cyan/20 blur-3xl rounded-full pointer-events-none" />
 
-               <h2 className="text-4xl md:text-5xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
+               <h2 className="text-3xl md:text-4xl font-black mb-3 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
                   {tutorialSteps[currentStep].title}
                </h2>
-               <p className="text-lg text-gray-300 leading-relaxed">
+               <p className="text-sm md:text-base text-gray-300 leading-relaxed">
                   {tutorialSteps[currentStep].description}
                </p>
 
-               <div className="flex gap-4 mt-8">
+               <div className="flex gap-3 mt-6">
                   <button
                     onClick={prevStep}
                     disabled={currentStep === 0}
@@ -115,9 +115,9 @@ const NeuralTutorialPage = () => {
                   {currentStep < tutorialSteps.length - 1 ? (
                       <button
                         onClick={nextStep}
-                        className="px-8 py-3 rounded-xl bg-neuro-cyan text-black font-bold hover:bg-cyan-300 transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] flex items-center gap-2"
+                        className="px-8 py-3 rounded-xl bg-neuro-cyan text-white font-bold hover:bg-cyan-300 transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] flex items-center gap-2"
                       >
-                        Ďalej <span className="text-xl">→</span>
+                        Ďalej <span className="text-xl text-white">→</span>
                       </button>
                   ) : (
                        <button

@@ -49,6 +49,9 @@ export const useNeuralNetwork = () => {
   const [currentAlgorithm, setCurrentAlgorithm] = useState<AlgorithmType | null>(null);
   const [algorithmProgress, setAlgorithmProgress] = useState(0);
   const [neuronsCreated, setNeuronsCreated] = useState(0);
+  const [currentProcessingNeuron, setCurrentProcessingNeuron] = useState<Neuron | null>(null);
+  const [isStatsLocked, setIsStatsLocked] = useState(false);
+  const [algorithmSpeed, setAlgorithmSpeed] = useState<'slow' | 'normal' | 'fast'>('normal');
   const algorithmStartTime = useRef<number>(0);
 
   // Pridanie nového neurónu
@@ -288,6 +291,7 @@ export const useNeuralNetwork = () => {
     setCurrentAlgorithm(algorithmType);
     setAlgorithmProgress(0);
     setNeuronsCreated(0);
+    setIsStatsLocked(true); // Lock stats podczas algoritmu
     algorithmStartTime.current = Date.now();
     
     // Vytvor neuróny ak ich je málo (menej ako 40)
@@ -380,16 +384,27 @@ export const useNeuralNetwork = () => {
     }
     setIsAlgorithmRunning(false);
     setCurrentAlgorithm(null);
+    setCurrentProcessingNeuron(null);
+    setIsStatsLocked(false); // Unlock stats
   }, []);
 
   // Update algoritmov v animation loop + progress tracking
   useEffect(() => {
     if (isAlgorithmRunning && algorithmRunner.current) {
+      // Speed mapping: slow=200ms, normal=120ms, fast=50ms
+      const intervalMs = algorithmSpeed === 'slow' ? 200 : algorithmSpeed === 'normal' ? 120 : 50;
+      
       const intervalId = setInterval(() => {
         // IMPORTANT: Update referencií pred každým update
         if (algorithmRunner.current) {
           algorithmRunner.current.updateNeurons(neurons);
           algorithmRunner.current.update();
+          
+          // Get current processing neuron from algorithm runner
+          const currentNeuron = algorithmRunner.current.getCurrentNeuron();
+          if (currentNeuron) {
+            setCurrentProcessingNeuron(currentNeuron);
+          }
         }
         
         // Update progress
@@ -404,15 +419,15 @@ export const useNeuralNetwork = () => {
         
         // Force re-render - vytvor nový array aby React videl zmeny
         setNeurons(prev => [...prev]);
-      }, 16); // ~60fps
+      }, intervalMs);
 
       return () => clearInterval(intervalId);
     }
-  }, [isAlgorithmRunning, currentAlgorithm, neurons]);
+  }, [isAlgorithmRunning, currentAlgorithm, neurons, algorithmSpeed]);
 
-  // Update štatistík
+  // Update štatistík - iba ak algoritmus beží alebo stats nie sú zamknuté
   useEffect(() => {
-    if (neurons.length > 0) {
+    if (neurons.length > 0 && (!isStatsLocked || isAlgorithmRunning)) {
       const totalConnections = neurons.reduce(
         (sum, n) => sum + n.connections.length,
         0
@@ -430,7 +445,7 @@ export const useNeuralNetwork = () => {
         averageHealth: avgHealth,
       }));
     }
-  }, [neurons]);
+  }, [neurons, isStatsLocked, isAlgorithmRunning]);
 
   // Track najaktívnejší neurón pre UI
   useEffect(() => {
@@ -462,25 +477,28 @@ export const useNeuralNetwork = () => {
     });
   }, [neurons]);
 
-  // Starnutie neurónov (každú sekundu)
+  // Starnutie neurónov (každú sekundu) - ale nie počas algoritmu
   useEffect(() => {
     if (ageInterval.current) clearInterval(ageInterval.current);
 
     ageInterval.current = setInterval(() => {
-      setNeurons((prev) =>
-        prev.map((n) => ({
-          ...n,
-          age: n.age + 1,
-          health: calculateNeuronHealth({ ...n, age: n.age + 1 }),
-        }))
-      );
+      // Nepridávaj starnutie ak algoritmus beží
+      if (!isAlgorithmRunning) {
+        setNeurons((prev) =>
+          prev.map((n) => ({
+            ...n,
+            age: n.age + 1,
+            health: calculateNeuronHealth({ ...n, age: n.age + 1 }),
+          }))
+        );
+      }
     }, 1000);
 
     return () => {
       if (ageInterval.current) clearInterval(ageInterval.current);
       if (trainingInterval.current) clearInterval(trainingInterval.current);
     };
-  }, []);
+  }, [isAlgorithmRunning]);
 
   return {
     neurons,
@@ -502,5 +520,8 @@ export const useNeuralNetwork = () => {
     neuronsCreated,
     activationFocus,
     currentPattern,
+    currentProcessingNeuron,
+    algorithmSpeed,
+    setAlgorithmSpeed,
   };
 };

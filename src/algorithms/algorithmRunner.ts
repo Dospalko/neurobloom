@@ -8,6 +8,7 @@ export class AlgorithmRunner {
   private startTime: number = 0;
   private isRunning: boolean = false;
   private originalColors: Map<string, THREE.Color> = new Map();
+  private currentProcessingNeuron: Neuron | null = null;
 
   constructor(neurons: Neuron[]) {
     this.neurons = neurons;
@@ -84,10 +85,19 @@ export class AlgorithmRunner {
     const waveSpeed = 0.5; // POMALŠIA vlna - z 2 na 0.8
     const waveWidth = 4; // ŠIRŠIA vlna pre lepšiu viditeľnosť
     const currentRadius = elapsed * waveSpeed;
+    
+    let closestNeuron: Neuron | null = null;
+    let minDiff = Infinity;
 
     this.neurons.forEach(neuron => {
       const distance = neuron.position.distanceTo(center);
       const diff = Math.abs(distance - currentRadius);
+      
+      // Track neurón closest to wave front
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestNeuron = neuron;
+      }
       
       // Plynulá vlna s jemným fade
       const waveFactor = Math.exp(-Math.pow(diff / waveWidth, 2));
@@ -105,11 +115,16 @@ export class AlgorithmRunner {
         }
       }
     });
+    
+    this.currentProcessingNeuron = closestNeuron;
   }
 
   private spiralGrowth(elapsed: number): void {
     const rotationSpeed = 0.35; // POMALŠIA rotácia - z 1.5 na 0.6
     const expansionSpeed = 0.3; // POMALŠIA expanzia - z 1 na 0.5
+    
+    let maxActivation = 0;
+    let mostActiveNeuron: Neuron | null = null;
     
     this.neurons.forEach(neuron => {
       const angle = Math.atan2(neuron.position.z, neuron.position.x);
@@ -125,6 +140,12 @@ export class AlgorithmRunner {
       const expansionPhase = Math.sin((distance - elapsed * expansionSpeed) * 0.5) * 0.5 + 0.5;
       
       neuron.activation = activation * expansionPhase * 0.9;
+      
+      // Track highest activation
+      if (neuron.activation > maxActivation) {
+        maxActivation = neuron.activation;
+        mostActiveNeuron = neuron;
+      }
       
       // VÝRAZNEJŠÍ farebný prechod - nasilu!
       const colorPhase = (angle + Math.PI + elapsed * 0.2) / (2 * Math.PI); // Pomalší farebný prechod
@@ -146,6 +167,8 @@ export class AlgorithmRunner {
         neuron.color.lerp(spiralColor, 0.2); // Pomalší prechod
       }
     });
+    
+    this.currentProcessingNeuron = mostActiveNeuron;
   }
 
   private cascadeActivation(elapsed: number): void {
@@ -159,6 +182,8 @@ export class AlgorithmRunner {
     const totalNeurons = sortedNeurons.length;
     const cascadeDuration = 6; // DLHŠIE trvanie - z 5 na 8 sekúnd
     
+    let currentlyActivatingNeuron: Neuron | null = null;
+    
     sortedNeurons.forEach((neuron, index) => {
       const progress = (index / totalNeurons) * cascadeDuration;
       const timeSinceActivation = elapsed - progress;
@@ -167,6 +192,11 @@ export class AlgorithmRunner {
         // Plynulý nárast a pokles
         const curve = Math.sin((timeSinceActivation / 3) * Math.PI);
         neuron.activation = curve * 0.95; // Vyššia aktivácia
+        
+        // Track currently activating neuron (peak of curve)
+        if (timeSinceActivation < 1.5 && timeSinceActivation > 0.5) {
+          currentlyActivatingNeuron = neuron;
+        }
         
         // VÝRAZNEJŠÍ prechod zo zelenej do žltej/oranžovej - nasilu!
         const colorPhase = timeSinceActivation / 3;
@@ -185,10 +215,15 @@ export class AlgorithmRunner {
         }
       }
     });
+    
+    this.currentProcessingNeuron = currentlyActivatingNeuron;
   }
 
   private pulseNetwork(elapsed: number): void {
     const pulseFrequency = 0.25; // POMALŠÍ pulz - z 0.8 na 0.4
+    
+    let maxPulse = 0;
+    let mostPulsingNeuron: Neuron | null = null;
     
     this.neurons.forEach(neuron => {
       // Jemné variácie medzi neurónmi
@@ -197,6 +232,12 @@ export class AlgorithmRunner {
       
       // Vyššia aktivácia
       neuron.activation = localPulse * 0.9;
+      
+      // Track highest pulse
+      if (localPulse > maxPulse) {
+        maxPulse = localPulse;
+        mostPulsingNeuron = neuron;
+      }
       
       // VÝRAZNEJŠÍ farebný prechod - nasilu!
       const colorPhase = (Math.sin(elapsed * pulseFrequency * Math.PI * 0.3) + 1) / 2;
@@ -209,6 +250,8 @@ export class AlgorithmRunner {
         neuron.color.lerp(pulseColor, 0.2); // Pomalší prechod
       }
     });
+    
+    this.currentProcessingNeuron = mostPulsingNeuron;
   }
 
   private randomWalker(elapsed: number): void {
@@ -232,6 +275,9 @@ export class AlgorithmRunner {
       const neuron = this.neurons[Math.abs(randomIndex)];
       if (neuron) {
         neuron.activation = 0.95; // Vyššia aktivácia
+        
+        // Track this as current
+        this.currentProcessingNeuron = neuron;
         
         // VÝRAZNÁ oranžová - nasilu!
         const orangeColor = new THREE.Color('#FFB74A');
@@ -259,5 +305,9 @@ export class AlgorithmRunner {
 
   getCurrentAlgorithm(): AlgorithmType | null {
     return this.currentAlgorithm;
+  }
+  
+  getCurrentNeuron(): Neuron | null {
+    return this.currentProcessingNeuron;
   }
 }

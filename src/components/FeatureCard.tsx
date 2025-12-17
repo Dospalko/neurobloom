@@ -5,13 +5,12 @@ import { motion } from "framer-motion";
 interface FeatureCardProps {
   title: string;
   description: string;
-  icon: ReactNode;
   path: string;
   color: "cyan" | "purple" | "orange";
   delay?: number;
 }
 
-const FeatureCard = ({ title, description, icon, path, color, delay = 0 }: FeatureCardProps) => {
+const FeatureCard = ({ title, description, path, color, delay = 0 }: FeatureCardProps) => {
   const navigate = useNavigate();
 
   const colorClasses = {
@@ -47,10 +46,7 @@ const FeatureCard = ({ title, description, icon, path, color, delay = 0 }: Featu
       {/* Background Glow Blob */}
       <div className={`absolute -right-10 -top-10 w-40 h-40 rounded-full blur-3xl opacity-20 transition-all duration-500 group-hover:opacity-40 group-hover:scale-150 ${bgClasses[color].replace('bg-', 'bg-')} z-0`} />
       
-      {/* Icon */}
-      <div className={`relative mb-6 w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 ${bgClasses[color]} ${textClasses[color]} group-hover:scale-110 shadow-lg z-10`}>
-        {icon}
-      </div>
+     
 
       {/* Content */}
       <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-white transition-colors relative z-10 w-full">

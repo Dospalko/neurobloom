@@ -30,6 +30,9 @@ const SimulationPage = () => {
     neuronsCreated,
     activationFocus,
     currentPattern,
+    currentProcessingNeuron,
+    algorithmSpeed,
+    setAlgorithmSpeed,
   } = useNeuralNetwork();
 
   useEffect(() => {
@@ -99,6 +102,7 @@ const SimulationPage = () => {
               highlightedNeuronId={activationFocus?.id ?? null}
               selectedNeuronId={selectedNeuronId}
               onNeuronClick={(id) => setSelectedNeuronId(id)}
+              currentProcessingNeuron={currentProcessingNeuron}
             />
             
             {/* Algorithm Info Overlay */}

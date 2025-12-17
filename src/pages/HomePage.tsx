@@ -111,7 +111,6 @@ const HomePage = () => {
               <FeatureCard 
                 title="Ako to funguje?"
                 description="Interaktívny sprievodca. Pochopte neurónové siete krok za krokom."
-                icon={<span className="text-4xl">🎓</span>}
                 path="/tutorial"
                 color="purple"
                 delay={0}
@@ -119,15 +118,13 @@ const HomePage = () => {
               <FeatureCard 
                 title="Simulácia"
                 description="Sledujte učenie siete v reálnom čase."
-                icon={<span className="text-4xl">🧠</span>}
-                path="/simulation"
+                path="/simulsation"
                 color="cyan"
                 delay={0.1}
               />
               <FeatureCard 
                 title="Častice"
                 description="Ovládajte systém pohybom alebo hlasom."
-                icon={<span className="text-4xl">✨</span>}
                 path="/particles"
                 color="orange"
                 delay={0.2}
@@ -135,7 +132,6 @@ const HomePage = () => {
                <FeatureCard 
                 title="Ihrisko"
                 description="3D vizualizácia trénovania a váh."
-                icon={<span className="text-4xl">🎮</span>}
                 path="/playground"
                 color="purple"
                 delay={0.3}

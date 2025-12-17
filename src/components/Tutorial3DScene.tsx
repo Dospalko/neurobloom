@@ -119,7 +119,7 @@ const OutputLayer = ({ active, step }: { active: boolean; step: number }) => {
     
     return (
         <group position={[LAYER_POSITIONS.output, 0, 0]}>
-            <Text position={[0, 8, 0]} fontSize={1.5} color="#06b6d4" outlineWidth={0.1} outlineColor="#000">
+            <Text position={[0, 9, 0]} fontSize={1.5} color="#06b6d4" outlineWidth={0.1} outlineColor="#000">
               VÝSTUP
             </Text>
             {outputs.map((val, i) => (
@@ -133,7 +133,15 @@ const OutputLayer = ({ active, step }: { active: boolean; step: number }) => {
                             metalness={0.9}
                         />
                     </Box>
-                    <Text position={[3, 0, 0]} fontSize={0.8} color={i === 4 && active ? "#fff" : "#666"}>
+                    {/* Number label - MUCH MORE VISIBLE */}
+                    <Text 
+                      position={[5, 0, 5]} 
+                      fontSize={1.2} 
+                      color={i === 4 && active ? "#ffffff" : "#999"} 
+                      outlineWidth={0.05}
+                      outlineColor="#000"
+                      anchorX="left"
+                    >
                       {i}
                     </Text>
                     {active && (

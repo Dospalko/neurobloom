@@ -26,7 +26,7 @@ const AlgorithmInfoOverlay = ({
     
     if (neuronsCreated < totalNeurons) {
       setPhase('creating');
-    } else if (progress < 0.95) {
+    } else if (progress < 0.99) { // Zvýšené z 0.95 aby complete sa zobrazilo až keď je skutočne hotovo
       setPhase('running');
     } else {
       setPhase('complete');
