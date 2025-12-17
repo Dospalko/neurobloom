@@ -26,7 +26,7 @@ const InputGrid = ({ active, step }: { active: boolean; step: number }) => {
         if (col === 4 && row < 7 && row > 3) isActive = true;
         if (col === 5 && row === 3) isActive = true;
 
-        points.push({ position: [x * 0.7, y * 0.7, 0], isActive });
+        points.push({ position: [x * 1.0, y * 1.0, 0], isActive });
      }
      return points;
   }, []);
@@ -35,17 +35,17 @@ const InputGrid = ({ active, step }: { active: boolean; step: number }) => {
   
   useFrame((state) => {
     if (groupRef.current && active) {
-      groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.15;
+      groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.08;
     }
   });
 
   return (
     <group ref={groupRef} position={[LAYER_POSITIONS.input, 0, 0]}>
-      <Text position={[0, 8, 0]} fontSize={1.5} color="#00e5ff" outlineWidth={0.1} outlineColor="#000">
+      <Text position={[0, 9, 0]} fontSize={1.5} color="#00e5ff" outlineWidth={0.1} outlineColor="#000">
         VSTUP
       </Text>
       {grid.map((p, i) => (
-         <Box key={i} args={[0.5, 0.5, 0.5]} position={p.position as [number, number, number]}>
+         <Box key={i} args={[0.8, 0.8, 0.8]} position={p.position as [number, number, number]}>
             <meshStandardMaterial 
                 color={p.isActive ? "#fbbf24" : "#0a0a15"} 
                 emissive={p.isActive ? "#fbbf24" : "#000"}
@@ -55,11 +55,6 @@ const InputGrid = ({ active, step }: { active: boolean; step: number }) => {
             />
          </Box>
       ))}
-      {step === 1 && (
-        <Sphere args={[10, 32, 32]} position={[0, 0, -3]}>
-          <meshBasicMaterial color="#fbbf24" transparent opacity={0.08} />
-        </Sphere>
-      )}
     </group>
   );
 };
@@ -162,39 +157,49 @@ const OutputLayer = ({ active, step }: { active: boolean; step: number }) => {
     )
 }
 
-// MUCH MORE VISIBLE Network Connections
+// Beautiful gradient connections with color coding
 const NetworkConnections = ({ step }: { step: number }) => {
+  const groups = useMemo(() => {
+    return [
+      { // Input to Hidden1 - Yellow to Purple
+        connections: Array.from({length: 30}).map(() => ({
+          start: new THREE.Vector3(LAYER_POSITIONS.input, (Math.random() - 0.5) * 10, 0),
+          end: new THREE.Vector3(LAYER_POSITIONS.hidden1, (Math.random() - 0.5) * 12, 0),
+          phase: Math.random() * Math.PI * 2
+        })),
+        color: new THREE.Color("#fbbf24")
+      },
+      { // Hidden1 to Hidden2 - Purple
+        connections: Array.from({length: 25}).map(() => ({
+          start: new THREE.Vector3(LAYER_POSITIONS.hidden1, (Math.random() - 0.5) * 12, 0),
+          end: new THREE.Vector3(LAYER_POSITIONS.hidden2, (Math.random() - 0.5) * 12, 0),
+          phase: Math.random() * Math.PI * 2
+        })),
+        color: new THREE.Color("#a855f7")
+      },
+      { // Hidden2 to Output - Purple to Cyan
+        connections: Array.from({length: 30}).map(() => ({
+          start: new THREE.Vector3(LAYER_POSITIONS.hidden2, (Math.random() - 0.5) * 12, 0),
+          end: new THREE.Vector3(LAYER_POSITIONS.output, (Math.random() - 0.5) * 14, 0),
+          phase: Math.random() * Math.PI * 2
+        })),
+        color: new THREE.Color("#06b6d4")
+      }
+    ];
+  }, []);
+
+  return (
+    <>
+      {groups.map((group, groupIdx) => (
+        <ConnectionGroup key={groupIdx} connections={group.connections} color={group.color} step={step} />
+      ))}
+    </>
+  );
+};
+
+const ConnectionGroup = ({ connections, color, step }: { connections: any[]; color: THREE.Color; step: number }) => {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
-  
-  const connections = useMemo(() => {
-    const conns = [];
-    // Input to Hidden1
-    for (let i = 0; i < 30; i++) {
-      conns.push({
-        start: new THREE.Vector3(LAYER_POSITIONS.input, (Math.random() - 0.5) * 10, 0),
-        end: new THREE.Vector3(LAYER_POSITIONS.hidden1, (Math.random() - 0.5) * 12, 0),
-        phase: Math.random() * Math.PI * 2
-      });
-    }
-    // Hidden1 to Hidden2
-    for (let i = 0; i < 25; i++) {
-      conns.push({
-        start: new THREE.Vector3(LAYER_POSITIONS.hidden1, (Math.random() - 0.5) * 12, 0),
-        end: new THREE.Vector3(LAYER_POSITIONS.hidden2, (Math.random() - 0.5) * 12, 0),
-        phase: Math.random() * Math.PI * 2
-      });
-    }
-    // Hidden2 to Output
-    for (let i = 0; i < 30; i++) {
-      conns.push({
-        start: new THREE.Vector3(LAYER_POSITIONS.hidden2, (Math.random() - 0.5) * 12, 0),
-        end: new THREE.Vector3(LAYER_POSITIONS.output, (Math.random() - 0.5) * 14, 0),
-        phase: Math.random() * Math.PI * 2
-      });
-    }
-    return conns;
-  }, []);
 
   useFrame((state) => {
     if (!meshRef.current) return;
@@ -211,7 +216,7 @@ const NetworkConnections = ({ step }: { step: number }) => {
       dummy.rotateY(Math.PI / 2);
       
       const pulse = Math.sin(state.clock.elapsedTime * 2 + conn.phase) * 0.5 + 1;
-      const thickness = active ? 0.08 * pulse : 0.03;
+      const thickness = active ? 0.1 * pulse : 0.04;
       dummy.scale.set(thickness, distance, thickness);
       
       dummy.updateMatrix();
@@ -224,7 +229,14 @@ const NetworkConnections = ({ step }: { step: number }) => {
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, connections.length]}>
       <cylinderGeometry args={[1, 1, 1, 8]} />
-      <meshBasicMaterial color="#00ffff" transparent opacity={0.4} />
+      <meshStandardMaterial 
+        color={color} 
+        emissive={color}
+        emissiveIntensity={0.5}
+        transparent 
+        opacity={0.5}
+        roughness={0.3}
+      />
     </instancedMesh>
   );
 };
@@ -241,8 +253,8 @@ const CameraController = ({ step }: { step: number }) => {
             targetPosRef.current.set(0, 5, 60);
             targetLookRef.current.set(0, 0, 0);
             break;
-          case 1: // Input zoom
-            targetPosRef.current.set(LAYER_POSITIONS.input, 0, 18);
+          case 1: // Input zoom - pull back more to see the whole grid
+            targetPosRef.current.set(LAYER_POSITIONS.input, 1, 22);
             targetLookRef.current.set(LAYER_POSITIONS.input, 0, 0);
             break;
           case 2: // Weights - side view showing connections
@@ -335,19 +347,53 @@ const DataFlowParticles = ({ step }: { step: number }) => {
     );
 };
 
+// Gradient Background Component
+const GradientBackground = () => {
+  return (
+    <mesh position={[0, 0, -50]} scale={[200, 100, 1]}>
+      <planeGeometry />
+      <shaderMaterial
+        transparent
+        vertexShader={`
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `}
+        fragmentShader={`
+          varying vec2 vUv;
+          void main() {
+            vec3 colorTop = vec3(0.05, 0.05, 0.15);
+            vec3 colorBottom = vec3(0.0, 0.0, 0.0);
+            vec3 color = mix(colorBottom, colorTop, vUv.y);
+            gl_FragColor = vec4(color, 1.0);
+          }
+        `}
+      />
+    </mesh>
+  );
+};
+
 const Tutorial3DScene = ({ step }: { step: number }) => {
   return (
     <Canvas gl={{ antialias: true, alpha: false }}>
        <PerspectiveCamera makeDefault position={[0, 5, 60]} fov={55} />
        <color attach="background" args={["#000000"]} />
+       <fog attach="fog" args={["#000000", 40, 100]} />
        
-       {/* Much Brighter Lighting */}
-       <ambientLight intensity={0.5} />
-       <pointLight position={[20, 15, 20]} intensity={2.5} color="#00e5ff" />
-       <pointLight position={[-20, -10, 15]} intensity={2} color="#a855f7" />
-       <spotLight position={[0, 20, 15]} angle={0.4} penumbra={1} intensity={1.5} color="#ffffff" />
+       <GradientBackground />
        
-       <Stars radius={200} depth={80} count={10000} factor={6} saturation={0} fade speed={0.5} />
+       {/* Enhanced Dramatic Lighting */}
+       <ambientLight intensity={0.6} />
+       <pointLight position={[LAYER_POSITIONS.input, 5, 10]} intensity={3} color="#fbbf24" distance={30} />
+       <pointLight position={[LAYER_POSITIONS.hidden1, 5, 10]} intensity={2.5} color="#a855f7" distance={30} />
+       <pointLight position={[LAYER_POSITIONS.hidden2, 5, 10]} intensity={2.5} color="#a855f7" distance={30} />
+       <pointLight position={[LAYER_POSITIONS.output, 5, 10]} intensity={3} color="#06b6d4" distance={30} />
+       <pointLight position={[0, 20, 20]} intensity={2} color="#ffffff" />
+       <spotLight position={[0, 25, 15]} angle={0.5} penumbra={1} intensity={2} color="#ffffff" castShadow />
+       
+       <Stars radius={200} depth={80} count={12000} factor={7} saturation={0} fade speed={0.3} />
        
        <group>
           <NetworkConnections step={step} />
