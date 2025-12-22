@@ -107,11 +107,13 @@ const SceneInner = ({ network, epoch, featureLabels, scenarioLabel }: Playground
       {connections.map((conn, idx) => {
         const weightAbs = Math.abs(conn.weight);
         const baseColor = new THREE.Color(conn.weight >= 0 ? "#00ccff" : "#ff9900");
-        const activity = Math.min(1, Math.abs(conn.sourceOutput) * 0.8 + Math.abs(conn.destOutput) * 0.2);
-        const color = baseColor.clone().lerp(new THREE.Color("#ffffff"), activity * 0.2).getStyle();
+        // widen contrast: weak = darker/thinner, strong = brighter/thicker
+        const strongMix = Math.min(0.45, weightAbs * 0.6);
+        const color = baseColor.clone().lerp(new THREE.Color("#ffffff"), strongMix).getStyle();
 
-        const lineWidth = Math.min(6, Math.max(2, weightAbs * 2));
-        const opacity = Math.min(0.95, 0.25 + weightAbs * 0.5 + activity * 0.5);
+        const weightWidth = 0.2 + weightAbs * 4; // bigger spread
+        const lineWidth = Math.min(8, Math.max(1, weightWidth));
+        const opacity = Math.min(0.95, 0.15 + weightAbs * 0.7);
         const midPoint = conn.from.pos
           .clone()
           .add(conn.to.pos)
