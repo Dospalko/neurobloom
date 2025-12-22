@@ -28,11 +28,8 @@ const NeuronReferencePanel = ({
     <div className="glass-effect rounded-2xl p-5 space-y-4 border border-white/10">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-bold text-white">Neuron Reference</h3>
+          <h3 className="text-md font-bold text-white">Neuron Reference</h3>
           <p className="text-[10px] text-gray-500 font-mono uppercase tracking-wide">Live activity + pins</p>
-        </div>
-        <div className="px-2 py-1 rounded-full bg-white/10 border border-white/20 text-[10px] font-mono text-gray-300">
-          {neurons.length} nodes
         </div>
       </div>
 
@@ -51,6 +48,7 @@ const NeuronReferencePanel = ({
         </div>
 
         {liveFocus ? (
+        <div>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-white">
@@ -63,13 +61,17 @@ const NeuronReferencePanel = ({
                 Pos: {liveFocus.position.x.toFixed(1)}, {liveFocus.position.y.toFixed(1)}, {liveFocus.position.z.toFixed(1)}
               </p>
             </div>
-            <button
-              onClick={() => onSelectNeuron(liveFocus.id)}
-              className="px-3 py-1 text-[11px] font-semibold rounded-lg bg-neuro-purple/20 border border-neuro-purple/50 text-white hover:bg-neuro-purple/30 transition"
-            >
-              Pin live
-            </button>
+
           </div>
+            <div  className="flex items-center justify-between pt-2">
+              <button
+                onClick={() => onSelectNeuron(liveFocus.id)}
+                className="px-3 py-1 text-[11px] font-semibold rounded-lg bg-neuro-purple/20 border border-neuro-purple/50 text-white hover:bg-neuro-purple/30 transition"
+              >
+                Pin live
+              </button>
+            </div>
+         </div>
         ) : (
           <p className="text-[11px] text-gray-400">Spusti tréning alebo algoritmus a uvidíš najaktívnejší neurón.</p>
         )}
@@ -92,7 +94,7 @@ const NeuronReferencePanel = ({
               <span className="font-semibold text-white">#{formatId(selectedNeuron.id)}</span>
               <span className="font-mono text-neuro-green">{(selectedNeuron.activation * 100).toFixed(1)}%</span>
             </div>
-            <div className="grid grid-cols-2 gap-2 text-[11px] text-gray-300">
+            <div className="grid grid-cols-2 gap-2 text-[10px] text-gray-300">
               <div className="flex items-center justify-between bg-white/5 rounded-lg px-2 py-1 border border-white/5">
                 <span>Health</span>
                 <span className={selectedNeuron.health > 0.7 ? "text-neuro-green font-semibold" : "text-yellow-400 font-semibold"}>
@@ -104,7 +106,7 @@ const NeuronReferencePanel = ({
                 <span className="font-mono text-white">{selectedNeuron.trainingCount}</span>
               </div>
               <div className="flex items-center justify-between bg-white/5 rounded-lg px-2 py-1 border border-white/5">
-                <span>Connections</span>
+                <span>Nodes</span>
                 <span className="font-mono text-white">{selectedNeuron.connections.length}</span>
               </div>
               <div className="flex items-center justify-between bg-white/5 rounded-lg px-2 py-1 border border-white/5">
@@ -127,16 +129,6 @@ const NeuronReferencePanel = ({
             Klikni na neurón v scéne, aby si ho pripol a sledoval jeho metriky počas tréningu.
           </div>
         )}
-      </div>
-
-      <div className="rounded-xl border border-white/5 bg-gradient-to-r from-white/5 to-white/0 p-3 text-[11px] text-gray-300 space-y-1">
-        <div className="flex items-center gap-2 text-white font-semibold text-xs">
-          <div className="w-1.5 h-1.5 bg-neuro-blue rounded-full" />
-          <span>Training guide</span>
-        </div>
-        <p>• Sleduj badge “Live activation” – ukazuje aktuálne najaktívnejší uzol.</p>
-        <p>• Pinni ho alebo iný neurón a uvidíš jeho zdravie, počet tréningov a spojení.</p>
-        <p>• Počas tréningu hľadaj uzly s vysokou aktiváciou, no nízkym health – môžu potrebovať pridať susedov.</p>
       </div>
     </div>
   );

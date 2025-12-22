@@ -63,6 +63,16 @@ const PlaygroundPage = () => {
       return Object.values(activeFeatures).filter(v => v).length;
   }, [activeFeatures]);
 
+  const activeFeatureLabels = useMemo(
+    () => FEATURES.filter(f => activeFeatures[f.id]).map(f => f.label),
+    [activeFeatures]
+  );
+
+  const scenarioLabel = useMemo(
+    () => DATASETS.find(d => d.id === dataset)?.label ?? dataset,
+    [dataset]
+  );
+
   // Initialize Network
   const initNetwork = useCallback(() => {
       if (inputSize === 0) return; // Should probably handle this better
@@ -319,6 +329,8 @@ const PlaygroundPage = () => {
                   <PlaygroundScene 
                         network={networkRef.current} 
                         epoch={epoch}
+                        featureLabels={activeFeatureLabels}
+                        scenarioLabel={scenarioLabel}
                    />
               </div>
           </div>

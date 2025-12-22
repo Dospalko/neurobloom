@@ -1,7 +1,15 @@
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Text, PerspectiveCamera, Environment, Stars, Sphere, Box } from "@react-three/drei";
 import * as THREE from "three";
+
+type ConnectionDef = {
+  start: THREE.Vector3;
+  end: THREE.Vector3;
+  strength: number; // 0-1 indicating signal quality/weight
+  phase: number;
+  color: THREE.Color;
+};
 
 // MUCH WIDER spacing between layers for better visibility
 const LAYER_POSITIONS = {
@@ -165,85 +173,81 @@ const OutputLayer = ({ active, step }: { active: boolean; step: number }) => {
     )
 }
 
-// Beautiful gradient connections with color coding
-const NetworkConnections = ({ step }: { step: number }) => {
-  const groups = useMemo(() => {
-    return [
-      { // Input to Hidden1 - Yellow to Purple
-        connections: Array.from({length: 30}).map(() => ({
-          start: new THREE.Vector3(LAYER_POSITIONS.input, (Math.random() - 0.5) * 10, 0),
-          end: new THREE.Vector3(LAYER_POSITIONS.hidden1, (Math.random() - 0.5) * 12, 0),
-          phase: Math.random() * Math.PI * 2
-        })),
-        color: new THREE.Color("#fbbf24")
-      },
-      { // Hidden1 to Hidden2 - Purple
-        connections: Array.from({length: 25}).map(() => ({
-          start: new THREE.Vector3(LAYER_POSITIONS.hidden1, (Math.random() - 0.5) * 12, 0),
-          end: new THREE.Vector3(LAYER_POSITIONS.hidden2, (Math.random() - 0.5) * 12, 0),
-          phase: Math.random() * Math.PI * 2
-        })),
-        color: new THREE.Color("#a855f7")
-      },
-      { // Hidden2 to Output - Purple to Cyan
-        connections: Array.from({length: 30}).map(() => ({
-          start: new THREE.Vector3(LAYER_POSITIONS.hidden2, (Math.random() - 0.5) * 12, 0),
-          end: new THREE.Vector3(LAYER_POSITIONS.output, (Math.random() - 0.5) * 14, 0),
-          phase: Math.random() * Math.PI * 2
-        })),
-        color: new THREE.Color("#06b6d4")
-      }
-    ];
-  }, []);
+// Build a reusable set of connections with strengths (stronger = thicker/brighter/faster signals)
+const buildConnections = () => {
+  const makeColor = (hex: string, strength: number) =>
+    new THREE.Color(hex).lerp(new THREE.Color("#ffffff"), 0.2 * strength);
 
-  return (
-    <>
-      {groups.map((group, groupIdx) => (
-        <ConnectionGroup key={groupIdx} connections={group.connections} color={group.color} step={step} />
-      ))}
-    </>
-  );
+  const jitter = (range: number) => (Math.random() - 0.5) * range;
+
+  const createSpan = (fromX: number, toX: number, count: number, colorHex: string, ySpread = 10, zSpread = 1): ConnectionDef[] =>
+    Array.from({ length: count }).map(() => {
+      const strength = Math.max(0.15, Math.pow(Math.random(), 1.3)); // more weak links, few strong
+      return {
+        start: new THREE.Vector3(fromX, jitter(ySpread), jitter(zSpread)),
+        end: new THREE.Vector3(toX, jitter(ySpread), jitter(zSpread)),
+        strength,
+        phase: Math.random() * Math.PI * 2,
+        color: makeColor(colorHex, strength),
+      };
+    });
+
+  return [
+    ...createSpan(LAYER_POSITIONS.input, LAYER_POSITIONS.hidden1, 34, "#fbbf24", 12, 1.2),
+    ...createSpan(LAYER_POSITIONS.hidden1, LAYER_POSITIONS.hidden2, 28, "#a855f7", 12, 1.6),
+    ...createSpan(LAYER_POSITIONS.hidden2, LAYER_POSITIONS.output, 34, "#06b6d4", 14, 2),
+  ];
 };
 
-const ConnectionGroup = ({ connections, color, step }: { connections: any[]; color: THREE.Color; step: number }) => {
+// Beautiful gradient connections with color coding and strength-aware thickness
+const NetworkConnections = ({ step, connections }: { step: number; connections: ConnectionDef[] }) => {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
+  // seed colors
+  useEffect(() => {
+    if (!meshRef.current || !meshRef.current.instanceColor) return;
+    connections.forEach((conn, i) => {
+      meshRef.current!.setColorAt(i, conn.color);
+    });
+    meshRef.current.instanceColor.needsUpdate = true;
+  }, [connections]);
+
   useFrame((state) => {
     if (!meshRef.current) return;
-    
     const active = step >= 2 && step <= 3;
-    
+
     connections.forEach((conn, i) => {
       const direction = new THREE.Vector3().subVectors(conn.end, conn.start);
       const distance = direction.length();
       const midpoint = new THREE.Vector3().addVectors(conn.start, conn.end).multiplyScalar(0.5);
-      
+
       dummy.position.copy(midpoint);
       dummy.lookAt(conn.end);
       dummy.rotateY(Math.PI / 2);
-      
-      const pulse = Math.sin(state.clock.elapsedTime * 2 + conn.phase) * 0.5 + 1;
-      const thickness = active ? 0.1 * pulse : 0.04;
+
+      const pulse = Math.sin(state.clock.elapsedTime * 2 + conn.phase) * 0.4 + 1;
+      const baseThickness = 0.06 + conn.strength * 0.25;
+      const thickness = active ? baseThickness * (1 + 0.35 * pulse) : baseThickness * 0.75;
       dummy.scale.set(thickness, distance, thickness);
-      
+
       dummy.updateMatrix();
       meshRef.current!.setMatrixAt(i, dummy.matrix);
     });
-    
+
     meshRef.current.instanceMatrix.needsUpdate = true;
   });
 
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, connections.length]}>
-      <cylinderGeometry args={[1, 1, 1, 8]} />
-      <meshStandardMaterial 
-        color={color} 
-        emissive={color}
+      <cylinderGeometry args={[1, 1, 1, 10]} />
+      <meshStandardMaterial
+        vertexColors
+        emissive="#ffffff"
         emissiveIntensity={0.5}
-        transparent 
-        opacity={0.5}
-        roughness={0.3}
+        transparent
+        opacity={step >= 2 ? 0.55 : 0.35}
+        roughness={0.35}
       />
     </instancedMesh>
   );
@@ -291,68 +295,66 @@ const CameraController = ({ step }: { step: number }) => {
     return null;
 }
 
-// MUCH BRIGHTER and BIGGER particles
-const DataFlowParticles = ({ step }: { step: number }) => {
-    const count = 200;
-    const mesh = useRef<THREE.InstancedMesh>(null);
-    const dummy = useMemo(() => new THREE.Object3D(), []);
-    
-    const particles = useMemo(() => {
-        return Array.from({length: count}).map(() => ({
-            progress: Math.random(),
-            speed: 0.003 + Math.random() * 0.004,
-            offset: Math.random() * Math.PI * 2,
-            pathIdx: Math.floor(Math.random() * 3)
-        }));
-    }, []);
+// Signals traveling along connections: strong connections push brighter/faster pulses
+const DataFlowParticles = ({ step, connections }: { step: number; connections: ConnectionDef[] }) => {
+  const count = 240;
+  const mesh = useRef<THREE.InstancedMesh>(null);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
 
-    useFrame((state) => {
-        if (!mesh.current) return;
-        
-        const active = step >= 1 && step <= 3;
-        
-        particles.forEach((p, i) => {
-            if (active) {
-                p.progress += p.speed;
-                if (p.progress > 1) p.progress = 0;
-            }
-            
-            let x, y, z;
-            if (p.pathIdx === 0) {
-                x = THREE.MathUtils.lerp(LAYER_POSITIONS.input, LAYER_POSITIONS.hidden1, p.progress);
-                y = Math.sin(p.progress * Math.PI + p.offset) * 3;
-            } else if (p.pathIdx === 1) {
-                x = THREE.MathUtils.lerp(LAYER_POSITIONS.hidden1, LAYER_POSITIONS.hidden2, p.progress);
-                y = Math.sin(p.progress * Math.PI + p.offset) * 2.5;
-            } else {
-                x = THREE.MathUtils.lerp(LAYER_POSITIONS.hidden2, LAYER_POSITIONS.output, p.progress);
-                y = Math.sin(p.progress * Math.PI + p.offset) * 3.5;
-            }
-            z = Math.sin(state.clock.elapsedTime + p.offset) * 1;
-            
-            dummy.position.set(x, y, z);
-            
-            const s = active ? (0.25 + Math.sin(p.progress * Math.PI) * 0.1) : 0;
-            dummy.scale.setScalar(s);
-            
-            dummy.updateMatrix();
-            mesh.current!.setMatrixAt(i, dummy.matrix);
-        });
-        mesh.current.instanceMatrix.needsUpdate = true;
+  const particles = useMemo(() => {
+    return Array.from({ length: count }).map(() => {
+      const connIdx = Math.floor(Math.random() * connections.length);
+      const strength = connections[connIdx]?.strength ?? 0.2;
+      return {
+        progress: Math.random(),
+        speed: 0.0025 + Math.random() * 0.002 + strength * 0.006,
+        offset: Math.random() * Math.PI * 2,
+        connIdx,
+      };
     });
+  }, [connections]);
 
-    return (
-        <instancedMesh ref={mesh} args={[undefined, undefined, count]}>
-            <sphereGeometry args={[1, 16, 16]} />
-            <meshStandardMaterial 
-                color="#00ffff" 
-                emissive="#00ffff"
-                emissiveIntensity={2}
-                transparent 
-                opacity={0.9} 
-            />
-        </instancedMesh>
-    );
+  useFrame((state) => {
+    if (!mesh.current) return;
+
+    const active = step >= 1 && step <= 3;
+
+    particles.forEach((p, i) => {
+      const conn = connections[p.connIdx];
+      if (!conn) return;
+      if (active) {
+        p.progress += p.speed;
+        if (p.progress > 1) p.progress = 0;
+      }
+
+      const pos = new THREE.Vector3().lerpVectors(conn.start, conn.end, p.progress);
+
+      dummy.position.copy(pos);
+
+      const scale = active ? 0.14 + conn.strength * 0.3 : 0;
+      dummy.scale.setScalar(scale);
+
+      dummy.updateMatrix();
+      mesh.current!.setMatrixAt(i, dummy.matrix);
+      const pulseColor = conn.color.clone().lerp(new THREE.Color("#ffffff"), 0.4);
+      mesh.current!.setColorAt(i, pulseColor);
+    });
+    if (mesh.current.instanceMatrix) mesh.current.instanceMatrix.needsUpdate = true;
+    if (mesh.current.instanceColor) mesh.current.instanceColor.needsUpdate = true;
+  });
+
+  return (
+    <instancedMesh ref={mesh} args={[undefined, undefined, count]}>
+      <sphereGeometry args={[1, 16, 16]} />
+      <meshStandardMaterial
+        vertexColors
+        emissive="#ffffff"
+        emissiveIntensity={1.2}
+        transparent
+        opacity={0.9}
+      />
+    </instancedMesh>
+  );
 };
 
 // Gradient Background Component
@@ -384,6 +386,8 @@ const GradientBackground = () => {
 };
 
 const Tutorial3DScene = ({ step }: { step: number }) => {
+  const connections = useMemo(() => buildConnections(), []);
+
   return (
     <Canvas gl={{ antialias: true, alpha: false }}>
        <PerspectiveCamera makeDefault position={[0, 5, 60]} fov={55} />
@@ -404,11 +408,11 @@ const Tutorial3DScene = ({ step }: { step: number }) => {
        <Stars radius={200} depth={80} count={12000} factor={7} saturation={0} fade speed={0.3} />
        
        <group>
-          <NetworkConnections step={step} />
+          <NetworkConnections step={step} connections={connections} />
           <InputGrid active={step >= 1} step={step} />
           <HiddenLayers active={step >= 2} step={step} />
           <OutputLayer active={step >= 4} step={step} />
-          <DataFlowParticles step={step} />
+          <DataFlowParticles step={step} connections={connections} />
        </group>
        
        <CameraController step={step} />

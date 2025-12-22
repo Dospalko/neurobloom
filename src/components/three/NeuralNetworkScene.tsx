@@ -1,17 +1,37 @@
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Environment, PerspectiveCamera, Stars, Sparkles, PerformanceMonitor } from "@react-three/drei";
+import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState, type CSSProperties } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Grid, OrbitControls, PerspectiveCamera, Stars, Sparkles, PerformanceMonitor } from "@react-three/drei";
 import * as THREE from "three";
+import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { Neuron as NeuronType } from "../../simulation/types";
 import Neuron from "./Neuron";
 import Connection from "./Connection";
 
 // Gradient pozadie component
 const GradientBackground = () => {
+  const { camera } = useThree();
+  const planeRef = useRef<THREE.Mesh>(null);
+  const dir = useMemo(() => new THREE.Vector3(), []);
+
+  useFrame(() => {
+    if (!planeRef.current) return;
+    camera.getWorldDirection(dir);
+    planeRef.current.position.copy(camera.position).addScaledVector(dir, 60);
+    planeRef.current.quaternion.copy(camera.quaternion);
+  });
+
   return (
-    <mesh scale={50} position={[0, 0, -10]}>
+    <mesh
+      ref={planeRef}
+      scale={140}
+      frustumCulled={false}
+      renderOrder={-10}
+    >
       <planeGeometry args={[1, 1]} />
       <shaderMaterial
         attach="material"
+        depthWrite={false}
+        depthTest={false}
         vertexShader={`
           varying vec2 vUv;
           void main() {
@@ -45,6 +65,153 @@ const GradientBackground = () => {
   );
 };
 
+type HudData = {
+  yawDisplay: number;    // -180 to 180 for readability
+  yawContinuous: number; // unwrapped to keep cube rotation smooth
+  pitch: number;
+  distance: number;
+};
+
+// Track camera orientation/distance for HUD
+const CameraTracker = ({ onChange }: { onChange: (data: HudData) => void }) => {
+  const { camera } = useThree();
+  const frame = useRef(0);
+  const prev = useRef<HudData>({ yawDisplay: 0, yawContinuous: 0, pitch: 0, distance: 0 });
+  const yawState = useRef({ raw: 0, accum: 0 });
+
+  useFrame(() => {
+    frame.current++;
+    if (frame.current % 4 !== 0) return; // throttle updates
+
+    const pos = camera.position;
+    const distance = pos.length();
+    const yawDisplay = Math.atan2(pos.x, pos.z) * THREE.MathUtils.RAD2DEG; // -180..180
+    const pitch = Math.atan2(pos.y, Math.sqrt(pos.x * pos.x + pos.z * pos.z)) * THREE.MathUtils.RAD2DEG;
+
+    // Unwrap yaw for continuous cube rotation (avoid jumps at +/-180)
+    let deltaYaw = yawDisplay - yawState.current.raw;
+    if (deltaYaw > 180) deltaYaw -= 360;
+    if (deltaYaw < -180) deltaYaw += 360;
+    yawState.current.accum += deltaYaw;
+    yawState.current.raw = yawDisplay;
+
+    const yawContinuous = yawState.current.accum;
+
+    const next = { yawDisplay, yawContinuous, pitch, distance };
+    const deltaYawDisp = Math.abs(next.yawDisplay - prev.current.yawDisplay);
+    const deltaPitch = Math.abs(next.pitch - prev.current.pitch);
+    const deltaDist = Math.abs(next.distance - prev.current.distance);
+
+    if (deltaYawDisp < 0.1 && deltaPitch < 0.1 && deltaDist < 0.01) return;
+    prev.current = next;
+    onChange(next);
+  });
+
+  return null;
+};
+
+// Subtle reference grid to keep orientation while orbiting/zooming
+const ReferenceGrid = () => {
+  const gridRef = useRef<THREE.Mesh>(null);
+  const { camera } = useThree();
+  const dir = useMemo(() => new THREE.Vector3(), []);
+
+  useFrame(() => {
+    if (!gridRef.current) return;
+    camera.getWorldDirection(dir);
+    gridRef.current.position.copy(camera.position).addScaledVector(dir, 80);
+    gridRef.current.quaternion.copy(camera.quaternion);
+  });
+
+  return (
+    <Grid
+      ref={gridRef}
+      args={[200, 200]}
+      cellSize={1}
+      cellThickness={0.35}
+      cellColor="#0d1a2c"
+      sectionSize={8}
+      sectionThickness={0.8}
+      sectionColor="#1f3b63"
+      fadeDistance={90}
+      fadeStrength={1.1}
+      infiniteGrid
+      renderOrder={-5}
+      frustumCulled={false}
+      side={THREE.DoubleSide}
+    />
+  );
+};
+
+// Always-visible HUD cube showing orientation (front/back/top/bottom/left/right) and camera stats
+const ScreenReference = ({ hud, onReset }: { hud: HudData; onReset: () => void }) => {
+  const { yawDisplay, yawContinuous, pitch, distance } = hud;
+  const size = 50;
+  const cubeStyle: CSSProperties = {
+    position: "relative",
+    width: `${size}px`,
+    height: `${size}px`,
+    transformStyle: "preserve-3d",
+    transform: `rotateX(${(-pitch).toFixed(2)}deg) rotateY(${(-yawContinuous).toFixed(2)}deg)`,
+    transition: "transform 0.08s ease-out",
+  };
+
+  const faceBase: CSSProperties = {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    border: "1px solid rgba(255,255,255,0.08)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "9px",
+    letterSpacing: "0.08em",
+    fontWeight: 600,
+    color: "rgba(255,255,255,0.85)",
+    textShadow: "0 1px 6px rgba(0,0,0,0.35)",
+    backfaceVisibility: "hidden",
+    background: "linear-gradient(145deg, rgba(28,42,74,0.75), rgba(16,24,42,0.85))",
+  };
+
+  return (
+    <div className="pointer-events-none absolute top-6 right-6 flex items-start gap-4 text-[10px] font-mono text-gray-300">
+      <div
+        className="relative rounded-xl border border-white/10 shadow-[0_0_0_1px_rgba(255,255,255,0.05)] pointer-events-auto"
+        style={{ padding: "24px 20px", backgroundColor: "rgba(5,10,20,0.75)", backdropFilter: "blur(6px)" }}
+      >
+        <div style={{ width: `${size}px`, height: `${size}px`, perspective: "720px" }}>
+          <div style={cubeStyle}>
+            <div style={{ ...faceBase, transform: `translateZ(${size / 2}px)` }}>FRONT</div>
+            <div style={{ ...faceBase, transform: `rotateY(180deg) translateZ(${size / 2}px)` }}>BACK</div>
+            <div style={{ ...faceBase, transform: `rotateY(90deg) translateZ(${size / 2}px)` }}>RIGHT</div>
+            <div style={{ ...faceBase, transform: `rotateY(-90deg) translateZ(${size / 2}px)` }}>LEFT</div>
+            <div style={{ ...faceBase, transform: `rotateX(90deg) translateZ(${size / 2}px)` }}>TOP</div>
+            <div style={{ ...faceBase, transform: `rotateX(-90deg) translateZ(${size / 2}px)` }}>BOTTOM</div>
+          </div>
+        </div>
+        <div className="mt-8 space-y-2 leading-tight text-[11px] pr-1">
+          <div className="uppercase tracking-[0.12em] text-[9px] text-gray-400">View ref</div>
+          <div className="text-white">
+            <span className="text-gray-400">Yaw:</span> {yawDisplay.toFixed(1)}°
+          </div>
+          <div className="text-white">
+            <span className="text-gray-400">Pitch:</span> {pitch.toFixed(1)}°
+          </div>
+          <div className="text-white">
+            <span className="text-gray-400">Distance:</span> {distance.toFixed(1)}
+          </div>
+          <button
+            onClick={onReset}
+            className="mt-3 w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-[11px] text-white hover:border-white/35 hover:bg-white/10 transition"
+          >
+            Reset view
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 interface NeuralNetworkSceneProps {
   neurons: NeuronType[];
   onNeuronClick?: (id: string) => void;
@@ -52,19 +219,54 @@ interface NeuralNetworkSceneProps {
   selectedNeuronId?: string | null;
 }
 
-const NeuralNetworkScene = ({
+export interface NeuralNetworkSceneHandle {
+  resetView: () => void;
+}
+
+const NeuralNetworkScene = forwardRef<NeuralNetworkSceneHandle, NeuralNetworkSceneProps>(
+({
   neurons,
   onNeuronClick,
   highlightedNeuronId,
   selectedNeuronId,
-}: NeuralNetworkSceneProps) => {
+}, ref) => {
   // Zozbieraj všetky spojenia
   const allConnections = neurons.flatMap((neuron) =>
     neuron.connections.map((conn) => ({ ...conn, neuronId: neuron.id }))
   );
+  const cameraRef = useRef<THREE.PerspectiveCamera>(null);
+  const controlsRef = useRef<OrbitControlsImpl>(null);
+  const resetView = useCallback(() => {
+    if (cameraRef.current) {
+      cameraRef.current.position.set(0, 0, 15);
+      cameraRef.current.lookAt(0, 0, 0);
+    }
+    if (controlsRef.current) {
+      controlsRef.current.target.set(0, 0, 0);
+      controlsRef.current.update();
+    }
+  }, []);
+
+  useImperativeHandle(ref, () => ({
+    resetView,
+  }), [resetView]);
+  const [hudStats, setHudStats] = useState<HudData>({ yawDisplay: 0, yawContinuous: 0, pitch: 0, distance: 15 });
+  const hudRef = useRef(hudStats);
+  const handleTrackerUpdate = useCallback((data: HudData) => {
+    const prevData = hudRef.current;
+    if (
+      Math.abs(prevData.yawDisplay - data.yawDisplay) < 0.2 &&
+      Math.abs(prevData.pitch - data.pitch) < 0.2 &&
+      Math.abs(prevData.distance - data.distance) < 0.02
+    ) {
+      return;
+    }
+    hudRef.current = data;
+    setHudStats(data);
+  }, []);
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full relative">
       <Canvas
         gl={{ 
           antialias: true,
@@ -76,10 +278,14 @@ const NeuralNetworkScene = ({
         <color attach="background" args={["#050510"]} />
         <PerformanceMonitor />
         
-        <PerspectiveCamera makeDefault position={[0, 0, 15]} fov={60} />
+        <PerspectiveCamera ref={cameraRef} makeDefault position={[0, 0, 15]} fov={60} />
+        <CameraTracker onChange={handleTrackerUpdate} />
         
         {/* Gradient pozadie */}
         <GradientBackground />
+
+        {/* Reference grid behind the network for spatial context */}
+        <ReferenceGrid />
         
         {/* Jasné farebné osvetlenie */}
         <ambientLight intensity={0.7} color="#99BBFF" />
@@ -128,6 +334,7 @@ const NeuralNetworkScene = ({
 
         {/* Kontroly */}
         <OrbitControls
+          ref={controlsRef}
           enablePan={true}
           enableZoom={true}
           enableRotate={true}
@@ -139,6 +346,8 @@ const NeuralNetworkScene = ({
           dampingFactor={0.05}
         />
       </Canvas>
+      
+      <ScreenReference hud={hudStats} onReset={resetView} />
       
       {/* Info overlay */}
       {neurons.length === 0 && (
@@ -161,6 +370,6 @@ const NeuralNetworkScene = ({
       )}
     </div>
   );
-};
+});
 
 export default NeuralNetworkScene;

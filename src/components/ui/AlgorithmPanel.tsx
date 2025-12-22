@@ -31,7 +31,7 @@ const AlgorithmPanel = ({
       <div className="flex items-center justify-between">
         <div>
           <p className="text-[11px] uppercase tracking-wide text-gray-500 font-mono">Visual algorithms</p>
-          <h3 className="text-lg font-bold text-white">Preset motions</h3>
+          <h3 className="text-md font-bold text-white">Preset motions</h3>
         </div>
         <div className="flex items-center gap-2">
           {isRunning && (
@@ -63,11 +63,11 @@ const AlgorithmPanel = ({
               key={algorithm.id}
               onClick={() => handleAlgorithmClick(algorithm.id)}
               disabled={isRunning}
-              className={`w-full flex items-center gap-3 rounded-xl px-3 py-3 border transition text-left disabled:opacity-50 disabled:cursor-not-allowed ${
+              className={`w-full flex items-center gap-3 rounded-xl px-1 py-1 border transition text-left disabled:opacity-50 disabled:cursor-not-allowed ${
                 isActive
-                  ? 'border-white/40 bg-white/10'
+                  ? 'border-white/80 bg-white/25'
                   : isSelected
-                  ? 'border-white/25 bg-white/5'
+                  ? 'border-white/80 bg-white/25'
                   : 'border-white/10 bg-white/5 hover:border-white/25'
               }`}
             >
@@ -76,16 +76,11 @@ const AlgorithmPanel = ({
               </div>
               <div className="flex-1">
                 <div className="text-sm font-semibold text-white">{algorithm.name}</div>
-                <div className="text-[11px] text-gray-400">{algorithm.duration}s • {algorithm.description}</div>
               </div>
               <div className={`w-2 h-2 rounded-full ${isActive ? 'animate-pulse' : ''}`} style={{ backgroundColor: algorithm.color }} />
             </button>
           );
         })}
-      </div>
-      <div className="flex items-center justify-between text-[11px] text-gray-500">
-        <span>Status: <span className="text-white font-mono">{isRunning ? 'running' : 'idle'}</span></span>
-        {currentAlgorithm && <span className="text-gray-400">Active: {currentAlgorithm}</span>}
       </div>
     </div>
   );

@@ -78,7 +78,6 @@ const HomePage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.5, duration: 0.8 }}
-              transition={{ delay: 1.5, duration: 0.8 }}
               className="mb-20"
             >
               <button 
@@ -118,7 +117,7 @@ const HomePage = () => {
               <FeatureCard 
                 title="Simulácia"
                 description="Sledujte učenie siete v reálnom čase."
-                path="/simulsation"
+                path="/simulation"
                 color="cyan"
                 delay={0.1}
               />
