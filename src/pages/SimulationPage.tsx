@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import NeuralNetworkScene from "../components/three/NeuralNetworkScene";
+import NeuralNetworkScene, { NeuralNetworkSceneHandle } from "../components/three/NeuralNetworkScene";
 import ControlPanel from "../components/ui/ControlPanel";
 import StatsDisplay from "../components/ui/StatsDisplay";
 import AlgorithmPanel from "../components/ui/AlgorithmPanel";
@@ -11,6 +11,7 @@ import { useNeuralNetwork } from "../hooks/useNeuralNetwork";
 const SimulationPage = () => {
   const navigate = useNavigate();
   const [selectedNeuronId, setSelectedNeuronId] = useState<string | null>(null);
+  const sceneRef = useRef<NeuralNetworkSceneHandle>(null);
   
   const {
     neurons,
@@ -98,6 +99,7 @@ const SimulationPage = () => {
           {/* 3D Scene - zaberie 3 stĺpce */}
           <div className="lg:col-span-3 h-[620px] panel overflow-hidden relative">
             <NeuralNetworkScene
+              ref={sceneRef}
               neurons={neurons}
               highlightedNeuronId={activationFocus?.id ?? null}
               selectedNeuronId={selectedNeuronId}
@@ -147,6 +149,12 @@ const SimulationPage = () => {
 
             <div className="panel p-4">
               <StatsDisplay stats={stats} />
+              <button
+                onClick={() => sceneRef.current?.resetView()}
+                className="mt-3 w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white hover:border-white/35 hover:bg-white/10 transition"
+              >
+                Reset view
+              </button>
             </div>
           </div>
         </div>
