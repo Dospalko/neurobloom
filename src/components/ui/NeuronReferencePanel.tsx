@@ -28,11 +28,8 @@ const NeuronReferencePanel = ({
     <div className="glass-effect rounded-2xl p-5 space-y-4 border border-white/10">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-bold text-white">Neuron Reference</h3>
+          <h3 className="text-md font-bold text-white">Neuron Reference</h3>
           <p className="text-[10px] text-gray-500 font-mono uppercase tracking-wide">Live activity + pins</p>
-        </div>
-        <div className="px-2 py-1 rounded-full bg-white/10 border border-white/20 text-[10px] font-mono text-gray-300">
-          {neurons.length} nodes
         </div>
       </div>
 
@@ -127,16 +124,6 @@ const NeuronReferencePanel = ({
             Klikni na neurón v scéne, aby si ho pripol a sledoval jeho metriky počas tréningu.
           </div>
         )}
-      </div>
-
-      <div className="rounded-xl border border-white/5 bg-gradient-to-r from-white/5 to-white/0 p-3 text-[11px] text-gray-300 space-y-1">
-        <div className="flex items-center gap-2 text-white font-semibold text-xs">
-          <div className="w-1.5 h-1.5 bg-neuro-blue rounded-full" />
-          <span>Training guide</span>
-        </div>
-        <p>• Sleduj badge “Live activation” – ukazuje aktuálne najaktívnejší uzol.</p>
-        <p>• Pinni ho alebo iný neurón a uvidíš jeho zdravie, počet tréningov a spojení.</p>
-        <p>• Počas tréningu hľadaj uzly s vysokou aktiváciou, no nízkym health – môžu potrebovať pridať susedov.</p>
       </div>
     </div>
   );

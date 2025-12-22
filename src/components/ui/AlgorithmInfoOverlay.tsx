@@ -53,7 +53,7 @@ const AlgorithmInfoOverlay = ({
   };
 
   return (
-    <div className="absolute top-6 left-6 z-20 pointer-events-none max-w-[calc(100%-3rem)]">
+    <div className="absolute top-6 left-6 z-20 pointer-events-none max-w-[calc(100%-8rem)]">
       <div className="glass-effect rounded-2xl border border-white/20 p-5 w-full sm:w-[380px] backdrop-blur-xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-3">

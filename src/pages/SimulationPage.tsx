@@ -52,8 +52,8 @@ const SimulationPage = () => {
   return (
     <div className="relative min-h-screen overflow-hidden bg-neuro-dark">
       {/* Header */}
-      <header className="relative z-10 px-6 py-6">
-        <div className="max-w-7xl mx-auto flex flex-col gap-4">
+      <header className="relative z-10 px-6 py-3">
+        <div className="mx-auto flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <button
@@ -75,50 +75,16 @@ const SimulationPage = () => {
               <div className="tag border-white/15 text-gray-300 bg-white/5">v1.0</div>
             </div>
           </div>
-
-          {/* Quick summary bar */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { label: "Neurons", value: stats.totalNeurons },
-              { label: "Connections", value: stats.totalConnections },
-              { label: "Avg Activation", value: `${(stats.averageActivation * 100).toFixed(1)}%` },
-              { label: "Health", value: `${(stats.averageHealth * 100).toFixed(1)}%` },
-            ].map((item) => (
-              <div key={item.label} className="panel-subtle px-3 py-3 border-white/10">
-                <p className="text-[11px] uppercase tracking-wide text-gray-500 font-mono">{item.label}</p>
-                <p className="text-lg font-semibold text-white">{item.value}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </header>
 
       {/* Main content */}
       <main className="relative z-10 px-6 pb-6">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* 3D Scene - zaberie 3 stĺpce */}
-          <div className="lg:col-span-3 h-[620px] panel overflow-hidden relative">
-            <NeuralNetworkScene
-              ref={sceneRef}
-              neurons={neurons}
-              highlightedNeuronId={activationFocus?.id ?? null}
-              selectedNeuronId={selectedNeuronId}
-              onNeuronClick={(id) => setSelectedNeuronId(id)}
-              currentProcessingNeuron={currentProcessingNeuron}
-            />
-            
-            {/* Algorithm Info Overlay */}
-            <AlgorithmInfoOverlay
-              currentAlgorithm={currentAlgorithm}
-              isRunning={isAlgorithmRunning}
-              progress={algorithmProgress}
-              neuronsCreated={neuronsCreated}
-              totalNeurons={40}
-            />
-          </div>
+        <div className="mx-auto space-y-4">
 
-          {/* Sidebar - 1 stĺpec */}
-          <div className="space-y-4">
+          {/* Scene with side panels */}
+          <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_260px] gap-4 items-start">
+            {/* Left: Controls */}
             <div className="panel p-4 space-y-4">
               <AlgorithmPanel
                 onRunAlgorithm={runAlgorithm}
@@ -126,46 +92,50 @@ const SimulationPage = () => {
                 isRunning={isAlgorithmRunning}
                 currentAlgorithm={currentAlgorithm}
               />
-            </div>
-
-            <div className="panel p-4 space-y-4">
               <ControlPanel
                 mode={mode}
                 onAddNeuron={addNeuron}
-                onAddMultiple={addMultipleNeurons}
                 onStartTraining={startTraining}
                 onStopTraining={stopTraining}
                 onReset={resetNetwork}
                 disabled={isAlgorithmRunning}
               />
+            </div>
 
-              <NeuronReferencePanel
+            {/* Center: 3D Scene */}
+            <div className="h-full panel overflow-hidden relative">
+              <NeuralNetworkScene
+                ref={sceneRef}
                 neurons={neurons}
-                liveFocus={activationFocus}
+                highlightedNeuronId={activationFocus?.id ?? null}
                 selectedNeuronId={selectedNeuronId}
-                onSelectNeuron={setSelectedNeuronId}
+                onNeuronClick={(id) => setSelectedNeuronId(id)}
+              />
+              
+              {/* Algorithm Info Overlay */}
+              <AlgorithmInfoOverlay
+                currentAlgorithm={currentAlgorithm}
+                isRunning={isAlgorithmRunning}
+                progress={algorithmProgress}
+                neuronsCreated={neuronsCreated}
+                totalNeurons={40}
               />
             </div>
 
-            <div className="panel p-4">
-              <StatsDisplay stats={stats} />
-              <button
-                onClick={() => sceneRef.current?.resetView()}
-                className="mt-3 w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white hover:border-white/35 hover:bg-white/10 transition"
-              >
-                Reset view
-              </button>
+            {/* Right: Reference & stats */}
+            <div className="space-y-4">
+              <div className="panel p-4 space-y-4">
+                <StatsDisplay stats={stats} />
+                <NeuronReferencePanel
+                  neurons={neurons}
+                  liveFocus={activationFocus}
+                  selectedNeuronId={selectedNeuronId}
+                  onSelectNeuron={setSelectedNeuronId}
+                />
+              </div>
+
             </div>
           </div>
-        </div>
-
-        {/* Simple footer */}
-        <div className="max-w-7xl mx-auto mt-10 flex flex-wrap items-center justify-between text-[11px] text-gray-500">
-          <span>NeuroBloom • Clean layout v1.1</span>
-          <span className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 bg-neuro-blue rounded-full" />
-            React • Three.js • TypeScript
-          </span>
         </div>
       </main>
     </div>

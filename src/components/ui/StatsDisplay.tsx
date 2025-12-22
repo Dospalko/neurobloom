@@ -16,8 +16,8 @@ const StatsDisplay = ({ stats }: StatsDisplayProps) => {
   );
 
   return (
-    <div className="glass-effect rounded-2xl p-5 space-y-3 border border-white/10">
-      <h3 className="text-lg font-bold text-white mb-3">Network Stats</h3>
+    <div>
+      <h3 className="text-md font-bold text-white mb-3">Network Stats</h3>
       
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-0.5">
