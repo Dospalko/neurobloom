@@ -21,15 +21,17 @@ const Neuron = ({ neuron, onClick, isHighlighted = false, isSelected = false }: 
   const targetColor = useMemo(() => new THREE.Color(), []);
 
   // Výrazné farebné materiály - nie biele!
-  const material = useMemo(() => 
-    new THREE.MeshStandardMaterial({
-      color: neuron.color.clone().multiplyScalar(1.5),
-      emissive: neuron.color.clone().multiplyScalar(1.2),
-      emissiveIntensity: 3, // Silná intenzita
-      metalness: 0.3,
-      roughness: 0.2,
-    }), 
-  [neuron.color]);
+  const material = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: neuron.color.clone().multiplyScalar(2.2),
+        emissive: neuron.color.clone().multiplyScalar(1.8),
+        emissiveIntensity: 4.5, // boost visibility against scene lighting
+        metalness: 0.25,
+        roughness: 0.15,
+      }),
+    [neuron.color]
+  );
 
   useFrame((state) => {
     if (!meshRef.current || !glowRef.current || !outerGlowRef.current || !activeRingRef.current) return;
@@ -45,18 +47,14 @@ const Neuron = ({ neuron, onClick, isHighlighted = false, isSelected = false }: 
 
     // Vnútorný glow - jemné pulzovanie
     const glowPulse = 1 + Math.sin(state.clock.elapsedTime * 1.5) * 0.1;
-    glowRef.current.scale.setScalar(
-      glowPulse * 0.35 * (0.5 + neuron.activation * 0.5) * highlightBoost
-    );
+    glowRef.current.scale.setScalar(glowPulse * 0.42 * (0.55 + neuron.activation * 0.6) * highlightBoost);
 
     // Vonkajší glow - veľmi jemné
     const outerGlowScale = 1 + Math.sin(state.clock.elapsedTime * 1) * 0.15;
-    outerGlowRef.current.scale.setScalar(
-      outerGlowScale * 0.6 * (1 + neuron.activation * 0.4) * highlightBoost
-    );
+    outerGlowRef.current.scale.setScalar(outerGlowScale * 0.8 * (1 + neuron.activation * 0.45) * highlightBoost);
 
     // Plynulé prechody farieb bez dramatických skokov
-    const baseMultiplier = 1.8 + neuron.activation * 0.7;
+    const baseMultiplier = 2.4 + neuron.activation * 0.9;
     
     // Use copy instead of clone
     targetColor.copy(neuron.color).multiplyScalar(baseMultiplier);
@@ -92,9 +90,9 @@ const Neuron = ({ neuron, onClick, isHighlighted = false, isSelected = false }: 
       <mesh ref={outerGlowRef}>
         <sphereGeometry args={[1, 12, 12]} />
         <meshBasicMaterial
-          color={neuron.color.clone().multiplyScalar(1.6)}
+          color={neuron.color.clone().multiplyScalar(2.1)}
           transparent
-          opacity={0.2 + neuron.activation * 0.3}
+          opacity={0.32 + neuron.activation * 0.35}
           depthWrite={false}
         />
       </mesh>
@@ -103,9 +101,9 @@ const Neuron = ({ neuron, onClick, isHighlighted = false, isSelected = false }: 
       <mesh ref={glowRef}>
         <sphereGeometry args={[1, 12, 12]} />
         <meshBasicMaterial
-          color={neuron.color.clone().multiplyScalar(2)}
+          color={neuron.color.clone().multiplyScalar(2.6)}
           transparent
-          opacity={0.4 + neuron.activation * 0.3}
+          opacity={0.55 + neuron.activation * 0.35}
           depthWrite={false}
         />
       </mesh>
@@ -119,8 +117,8 @@ const Neuron = ({ neuron, onClick, isHighlighted = false, isSelected = false }: 
       <mesh scale={0.6}>
         <sphereGeometry args={[1, 8, 8]} />
         <meshBasicMaterial 
-          color={neuron.color.clone().multiplyScalar(2.2)} 
-          opacity={0.7 + neuron.activation * 0.2} 
+          color={neuron.color.clone().multiplyScalar(3)} 
+          opacity={0.85 + neuron.activation * 0.2} 
           transparent
         />
       </mesh>
