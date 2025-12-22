@@ -54,7 +54,7 @@ const AlgorithmInfoOverlay = ({
 
   return (
     <div className="absolute top-6 left-6 z-20 pointer-events-none max-w-[calc(100%-8rem)]">
-      <div className="glass-effect rounded-2xl border border-white/20 p-5 w-full sm:w-[380px] backdrop-blur-xl">
+      <div className="glass-effect rounded-2xl border border-white/20 px-5 py-2 w-full sm:w-[380px] backdrop-blur-xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -102,10 +102,6 @@ const AlgorithmInfoOverlay = ({
 
           {phase === 'running' && (
             <div className="text-[11px] text-gray-300 leading-relaxed">
-              <span className="font-semibold" style={{ color: algorithm.color }}>
-                ► Ako to funguje:
-              </span>
-              <br />
               {algorithm.description}
             </div>
           )}
@@ -123,7 +119,6 @@ const AlgorithmInfoOverlay = ({
         {/* Legend - len počas behu */}
         {phase === 'running' && (
           <div className="mt-3 pt-3 border-t border-white/10">
-            <div className="text-[9px] text-gray-500 font-mono mb-1.5">TYPY NEURÓNOV:</div>
             <div className="grid grid-cols-3 gap-1.5">
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-neuro-blue" />

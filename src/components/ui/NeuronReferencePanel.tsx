@@ -48,6 +48,7 @@ const NeuronReferencePanel = ({
         </div>
 
         {liveFocus ? (
+        <div>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-white">
@@ -60,13 +61,17 @@ const NeuronReferencePanel = ({
                 Pos: {liveFocus.position.x.toFixed(1)}, {liveFocus.position.y.toFixed(1)}, {liveFocus.position.z.toFixed(1)}
               </p>
             </div>
-            <button
-              onClick={() => onSelectNeuron(liveFocus.id)}
-              className="px-3 py-1 text-[11px] font-semibold rounded-lg bg-neuro-purple/20 border border-neuro-purple/50 text-white hover:bg-neuro-purple/30 transition"
-            >
-              Pin live
-            </button>
+
           </div>
+            <div  className="flex items-center justify-between pt-2">
+              <button
+                onClick={() => onSelectNeuron(liveFocus.id)}
+                className="px-3 py-1 text-[11px] font-semibold rounded-lg bg-neuro-purple/20 border border-neuro-purple/50 text-white hover:bg-neuro-purple/30 transition"
+              >
+                Pin live
+              </button>
+            </div>
+         </div>
         ) : (
           <p className="text-[11px] text-gray-400">Spusti tréning alebo algoritmus a uvidíš najaktívnejší neurón.</p>
         )}
@@ -89,7 +94,7 @@ const NeuronReferencePanel = ({
               <span className="font-semibold text-white">#{formatId(selectedNeuron.id)}</span>
               <span className="font-mono text-neuro-green">{(selectedNeuron.activation * 100).toFixed(1)}%</span>
             </div>
-            <div className="grid grid-cols-2 gap-2 text-[11px] text-gray-300">
+            <div className="grid grid-cols-2 gap-2 text-[10px] text-gray-300">
               <div className="flex items-center justify-between bg-white/5 rounded-lg px-2 py-1 border border-white/5">
                 <span>Health</span>
                 <span className={selectedNeuron.health > 0.7 ? "text-neuro-green font-semibold" : "text-yellow-400 font-semibold"}>
@@ -101,7 +106,7 @@ const NeuronReferencePanel = ({
                 <span className="font-mono text-white">{selectedNeuron.trainingCount}</span>
               </div>
               <div className="flex items-center justify-between bg-white/5 rounded-lg px-2 py-1 border border-white/5">
-                <span>Connections</span>
+                <span>Nodes</span>
                 <span className="font-mono text-white">{selectedNeuron.connections.length}</span>
               </div>
               <div className="flex items-center justify-between bg-white/5 rounded-lg px-2 py-1 border border-white/5">
