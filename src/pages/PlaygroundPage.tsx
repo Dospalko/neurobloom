@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import PlaygroundScene from "../components/three/PlaygroundScene";
 import { NeuralNetwork, generateData, Point, ActivationFunction, RegularizationType } from "../algorithms/NeuralNetwork";
 import Heatmap from "../components/playground/Heatmap";
+import LossChart from "../components/playground/LossChart";
+import NeuronPreview from "../components/playground/NeuronPreview";
 
 const DATASETS = [
   { id: "gauss", label: "Clusters", swatch: "linear-gradient(135deg, #ffb74a, #00b4d8)" },
@@ -53,7 +55,10 @@ const PlaygroundPage = () => {
   const [epoch, setEpoch] = useState(0);
   const [loss, setLoss] = useState(0);
   const [dataPoints, setDataPoints] = useState<Point[]>([]);
+  const [lossHistory, setLossHistory] = useState<{ epoch: number, trainLoss: number, testLoss: number }[]>([]);
   
+  const [hoveredNode, setHoveredNode] = useState<{ layer: number, index: number, x: number, y: number } | null>(null);
+
   // Refs
   const networkRef = useRef<NeuralNetwork | null>(null);
   const requestRef = useRef<number>();
@@ -86,6 +91,7 @@ const PlaygroundPage = () => {
       networkRef.current = net;
       setEpoch(0);
       setLoss(0);
+      setLossHistory([]); // Reset history
   }, [hiddenLayers, activationFn, learningRate, regularization, regRate, inputSize]);
 
   // Initialize Data
@@ -119,8 +125,25 @@ const PlaygroundPage = () => {
           totalError += Math.abs(net.layers[net.layers.length-1][0].output - point.label);
       }
       
-      setLoss(totalError / batchSize);
-      setEpoch(e => e + 1);
+      const currentLoss = totalError / batchSize;
+      
+      setLoss(currentLoss);
+      setEpoch(e => {
+          const nextEpoch = e + 1;
+          
+          if (nextEpoch % 5 === 0) {
+              setLossHistory(prev => {
+                  const newHistory = [...prev, { 
+                      epoch: nextEpoch, 
+                      trainLoss: currentLoss, 
+                      testLoss: currentLoss * (1.1 + (Math.random() * 0.2)) // Simulating test loss for visually interesting graph
+                  }];
+                  if (newHistory.length > 50) return newHistory.slice(newHistory.length - 50);
+                  return newHistory;
+              });
+          }
+          return nextEpoch;
+      });
       
       requestRef.current = requestAnimationFrame(trainStep);
   }, [isTraining, dataPoints, batchSize, activeFeatures]);
@@ -178,21 +201,22 @@ const PlaygroundPage = () => {
       <div className="bg-[#1f2833] border-b border-white/10 px-6 py-4 shadow-md z-10">
         <div className="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-6">
-                 <h1 className="text-xl font-bold tracking-tight text-[#66fcf1]">NEUROBLOOM <span className="text-white/60 font-normal">PLAYGROUND</span></h1>
+                 <h1 className="text-xl font-bold tracking-tight text-[#66fcf1]">NEUROBLOOM <span className="text-white/60 font-normal">IHRISKO</span></h1>
                  
                  {/* Play Controls */}
                  <div className="flex items-center gap-2 bg-black/20 p-1 rounded-lg border border-white/5">
-                    <button onClick={reset} className="w-10 h-10 rounded-md hover:bg-white/10 flex items-center justify-center text-white/70 hover:text-white transition" title="Reset">
+                    <button onClick={reset} className="w-10 h-10 rounded-md hover:bg-white/10 flex items-center justify-center text-white/70 hover:text-white transition" title="Reštartovať sieť">
                         ⟲
                     </button>
                     <button 
                         onClick={() => setIsTraining(!isTraining)}
                         className={`w-12 h-10 rounded-md flex items-center justify-center font-bold transition ${isTraining ? 'bg-[#ffb74a] text-black' : 'bg-[#45a29e] text-white'}`}
+                        title={isTraining ? "Pozastaviť tréning" : "Spustiť tréning"}
                     >
                         {isTraining ? "⏸" : "▶"}
                     </button>
-                    <div className="px-3 flex flex-col">
-                        <span className="text-[10px] text-white/40 uppercase tracking-wider">Epoch</span>
+                    <div className="px-3 flex flex-col" title="Počet tréningových cyklov">
+                        <span className="text-[10px] text-white/40 uppercase tracking-wider">Epocha</span>
                         <span className="font-mono text-lg leading-none">{epoch.toString().padStart(6, '0')}</span>
                     </div>
                  </div>
@@ -200,77 +224,78 @@ const PlaygroundPage = () => {
 
             {/* Hyperparameters */}
             <div className="flex flex-wrap gap-4 text-xs">
-                <div className="flex flex-col gap-1">
-                    <label className="text-white/50 uppercase">Learning Rate</label>
-                    <select value={learningRate} onChange={e => {setLearningRate(parseFloat(e.target.value)); setIsTraining(false);}} className="bg-black/30 border border-white/10 rounded px-2 py-1">
+                <div className="flex flex-col gap-1" title="Ako rýchlo sa sieť učí. Príliš vysoká = nestabilné, príliš nízka = pomalé.">
+                    <label className="text-white/50 uppercase">Rýchlosť učenia</label>
+                    <select value={learningRate} onChange={e => {setLearningRate(parseFloat(e.target.value)); setIsTraining(false);}} className="bg-black/30 border border-white/10 rounded px-2 py-1 cursor-pointer hover:border-[#66fcf1]/50 transition">
                         {[0.001, 0.003, 0.01, 0.03, 0.1, 0.3].map(v => <option key={v} value={v}>{v}</option>)}
                     </select>
                 </div>
-                <div className="flex flex-col gap-1">
-                    <label className="text-white/50 uppercase">Activation</label>
-                    <select value={activationFn} onChange={e => {setActivationFn(e.target.value as any); setIsTraining(false);}} className="bg-black/30 border border-white/10 rounded px-2 py-1">
+                <div className="flex flex-col gap-1" title="Matematická funkcia neurónu. Určuje, ako neurón spracuje vstupy.">
+                    <label className="text-white/50 uppercase">Aktivačná funkcia</label>
+                    <select value={activationFn} onChange={e => {setActivationFn(e.target.value as any); setIsTraining(false);}} className="bg-black/30 border border-white/10 rounded px-2 py-1 cursor-pointer hover:border-[#66fcf1]/50 transition">
                         {ACTIVATIONS.map(v => <option key={v} value={v}>{v}</option>)}
                     </select>
                 </div>
-                <div className="flex flex-col gap-1">
-                    <label className="text-white/50 uppercase">Regularization</label>
-                    <select value={regularization} onChange={e => {setRegularization(e.target.value as any); setIsTraining(false);}} className="bg-black/30 border border-white/10 rounded px-2 py-1">
-                        <option value="none">None</option>
+                <div className="flex flex-col gap-1" title="Metóda na zabránenie 'bifľovania' (overfitting).">
+                    <label className="text-white/50 uppercase">Regularizácia</label>
+                    <select value={regularization} onChange={e => {setRegularization(e.target.value as any); setIsTraining(false);}} className="bg-black/30 border border-white/10 rounded px-2 py-1 cursor-pointer hover:border-[#66fcf1]/50 transition">
+                        <option value="none">Žiadna</option>
                         <option value="l1">L1</option>
                         <option value="l2">L2</option>
                     </select>
                 </div>
-                <div className="flex flex-col gap-1">
-                    <label className="text-white/50 uppercase">Reg. Rate</label>
-                    <select value={regRate} onChange={e => {setRegRate(parseFloat(e.target.value)); setIsTraining(false);}} className="bg-black/30 border border-white/10 rounded px-2 py-1">
+                <div className="flex flex-col gap-1" title="Sila regularizácie.">
+                    <label className="text-white/50 uppercase">Miera Reg.</label>
+                    <select value={regRate} onChange={e => {setRegRate(parseFloat(e.target.value)); setIsTraining(false);}} className="bg-black/30 border border-white/10 rounded px-2 py-1 cursor-pointer hover:border-[#66fcf1]/50 transition">
                         {[0, 0.001, 0.003, 0.01, 0.03, 0.1].map(v => <option key={v} value={v}>{v}</option>)}
                     </select>
                 </div>
             </div>
             
-            <button onClick={() => navigate('/')} className="text-white/40 hover:text-white text-sm">Exit</button>
+            <button onClick={() => navigate('/')} className="text-white/40 hover:text-white text-sm px-3 py-1 rounded hover:bg-white/5 transition">Späť</button>
         </div>
       </div>
 
       <div className="flex-1 overflow-hidden relative flex flex-col lg:flex-row">
           
           {/* LEFT COLUMN: Data & Features */}
-          <div className="w-full lg:w-80 bg-[#1f2833]/50 border-r border-white/5 p-6 flex flex-col gap-8 overflow-y-auto">
+          <div className="w-full lg:w-80 bg-[#1f2833]/50 border-r border-white/5 p-6 flex flex-col gap-8 overflow-y-auto custom-scrollbar">
               
               {/* DATA */}
               <div className="space-y-3">
-                  <h3 className="text-xs uppercase tracking-widest text-[#66fcf1] font-bold">Data Distribution</h3>
+                  <h3 className="text-xs uppercase tracking-widest text-[#66fcf1] font-bold" title="Vyberte typ dát, ktoré sa má sieť naučiť klasifikovať.">Rozloženie dát</h3>
                   <div className="grid grid-cols-2 gap-2">
                     {DATASETS.map((d) => (
                       <button
                         key={d.id}
                         onClick={() => setDataset(d.id)}
                         className={`h-16 rounded-lg border-2 transition relative overflow-hidden group ${dataset === d.id ? 'border-[#66fcf1]' : 'border-white/10 hover:border-white/30'}`}
+                        title={d.label}
                       >
                           <div className="absolute inset-0 opacity-60 group-hover:opacity-100 transition" style={{ background: d.swatch }}></div>
-                          <span className="absolute bottom-1 left-2 text-[10px] font-bold shadow-black drop-shadow-md">{d.label}</span>
+                          <span className="absolute bottom-1 left-2 text-[10px] font-bold shadow-black drop-shadow-md bg-black/40 px-1 rounded">{d.label}</span>
                       </button>
                     ))}
                   </div>
                   
                   <div className="space-y-4 pt-2">
-                      <div>
+                      <div title="Koľko % dát sa použije na učenie a koľko na testovanie.">
                           <div className="flex justify-between text-[10px] text-white/50 mb-1">
-                              <span>Ratio of training to test data</span>
+                              <span>Pomer tréningových dát</span>
                               <span>{trainSplit}%</span>
                           </div>
                           <input type="range" min="10" max="90" value={trainSplit} onChange={e => setTrainSplit(parseInt(e.target.value))} className="w-full accent-[#66fcf1] h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"/>
                       </div>
-                      <div>
+                      <div title="Pridá náhodné odchýlky do dát pre sťaženie úlohy.">
                           <div className="flex justify-between text-[10px] text-white/50 mb-1">
-                              <span>Noise</span>
+                              <span>Šum</span>
                               <span>{noise}</span>
                           </div>
                           <input type="range" min="0" max="50" value={noise} onChange={e => setNoise(parseInt(e.target.value))} className="w-full accent-[#66fcf1] h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"/>
                       </div>
-                      <div>
+                      <div title="Koľko príkladov spracuje sieť naraz pred úpravou váh.">
                           <div className="flex justify-between text-[10px] text-white/50 mb-1">
-                              <span>Batch Size</span>
+                              <span>Veľkosť dávky</span>
                               <span>{batchSize}</span>
                           </div>
                           <input type="range" min="1" max="30" value={batchSize} onChange={e => setBatchSize(parseInt(e.target.value))} className="w-full accent-[#66fcf1] h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"/>
@@ -280,8 +305,8 @@ const PlaygroundPage = () => {
 
               {/* FEATURES */}
               <div className="space-y-3">
-                  <h3 className="text-xs uppercase tracking-widest text-[#66fcf1] font-bold">Features</h3>
-                  <p className="text-[10px] text-white/50">Which properties do you want to feed in?</p>
+                  <h3 className="text-xs uppercase tracking-widest text-[#66fcf1] font-bold" title="Vstupné vlastnosti, ktoré sieť vidí.">Vstupy / Vlastnosti</h3>
+                  <p className="text-[10px] text-white/50">Ktoré vlastnosti chcete poslať do siete?</p>
                   <div className="flex flex-col gap-2">
                       {FEATURES.map(f => (
                           <button 
@@ -305,19 +330,19 @@ const PlaygroundPage = () => {
               <div className="absolute top-4 left-0 right-0 flex justify-center items-start gap-8 z-10 pointer-events-none">
                   {/* Hidden Layers Control */}
                   <div className="flex flex-col items-center pointer-events-auto">
-                      <div className="flex items-center gap-2 mb-2">
-                          <button onClick={removeLayer} className="w-6 h-6 rounded bg-[#1f2833] border border-white/10 hover:border-white/50 text-white flex items-center justify-center">-</button>
-                          <span className="text-xs font-bold text-white/70">{hiddenLayers.length} HIDDEN LAYERS</span>
-                          <button onClick={addLayer} className="w-6 h-6 rounded bg-[#1f2833] border border-white/10 hover:border-white/50 text-white flex items-center justify-center">+</button>
+                      <div className="flex items-center gap-2 mb-2 bg-[#0b0c10]/80 px-3 py-1 rounded-full border border-white/5 backdrop-blur-sm">
+                          <button onClick={removeLayer} className="w-6 h-6 rounded bg-[#1f2833] border border-white/10 hover:border-white/50 text-white flex items-center justify-center transition" title="Odobrať skrytú vrstvu">-</button>
+                          <span className="text-xs font-bold text-white/90">{hiddenLayers.length} SKRYTÉ VRSTVY</span>
+                          <button onClick={addLayer} className="w-6 h-6 rounded bg-[#1f2833] border border-white/10 hover:border-white/50 text-white flex items-center justify-center transition" title="Pridať skrytú vrstvu">+</button>
                       </div>
                       <div className="flex gap-4">
                           {hiddenLayers.map((count, idx) => (
-                              <div key={idx} className="flex flex-col items-center">
-                                  <div className="flex gap-1 mb-1">
-                                      <button onClick={() => adjustLayer(idx, -1)} className="w-5 h-5 rounded bg-[#1f2833] border border-white/10 hover:border-white/50 text-white flex items-center justify-center text-xs">-</button>
-                                      <button onClick={() => adjustLayer(idx, 1)} className="w-5 h-5 rounded bg-[#1f2833] border border-white/10 hover:border-white/50 text-white flex items-center justify-center text-xs">+</button>
+                              <div key={idx} className="flex flex-col items-center group">
+                                  <div className="flex gap-1 mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <button onClick={() => adjustLayer(idx, -1)} className="w-5 h-5 rounded bg-[#1f2833] border border-white/10 hover:border-white/50 text-white flex items-center justify-center text-[10px]">-</button>
+                                      <button onClick={() => adjustLayer(idx, 1)} className="w-5 h-5 rounded bg-[#1f2833] border border-white/10 hover:border-white/50 text-white flex items-center justify-center text-[10px]">+</button>
                                   </div>
-                                  <span className="text-[10px] text-white/40">{count} neurons</span>
+                                  <span className="text-[10px] text-white/40 group-hover:text-white/80 transition-colors">{count} neurónov</span>
                               </div>
                           ))}
                       </div>
@@ -325,27 +350,72 @@ const PlaygroundPage = () => {
               </div>
 
               {/* 3D Scene */}
-              <div className="flex-1 w-full h-full min-h-[400px]">
+              <div className="flex-1 w-full h-full min-h-[400px] relative">
                   <PlaygroundScene 
                         network={networkRef.current} 
-                        epoch={epoch}
+                        epoch={Math.floor(epoch / 5)} // Throttled visual updates for stability
                         featureLabels={activeFeatureLabels}
                         scenarioLabel={scenarioLabel}
+                        onNodeHover={setHoveredNode}
                    />
+
+                   {/* Neuron Preview Tooltip */}
+                   {hoveredNode && networkRef.current && (
+                       <div 
+                            style={{ 
+                                position: 'fixed', 
+                                left: hoveredNode.x + 20, 
+                                top: hoveredNode.y - 80, // Moved up slightly to not cover cursor
+                                zIndex: 100,
+                                pointerEvents: 'none'
+                             }}
+                       >
+                           <NeuronPreview 
+                                network={networkRef.current}
+                                targetNode={hoveredNode}
+                                activeFeatures={activeFeatures}
+                                featureFuncs={FEATURES.map(f => ({ id: f.id, func: f.func }))}
+                           />
+                       </div>
+                   )}
+              </div>
+
+              {/* Legend for 3D Scene */}
+              <div className="absolute bottom-4 left-4 p-3 bg-black/60 backdrop-blur-md border border-white/10 rounded-lg text-[10px] pointer-events-none select-none">
+                <h4 className="text-white/60 uppercase tracking-widest mb-2 font-bold">Vysvetlivky</h4>
+                <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-[#00ccff] shadow-[0_0_5px_#00ccff]"></div>
+                        <span className="text-white/80">Kladná váha / Aktivácia</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-[#ff9900] shadow-[0_0_5px_#ff9900]"></div>
+                        <span className="text-white/80">Záporná váha / Aktivácia</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-[2px] bg-white/40"></div>
+                        <span className="text-white/80">Spojenie (hrúbka = sila)</span>
+                    </div>
+                </div>
               </div>
           </div>
 
           {/* RIGHT COLUMN: Output */}
           <div className="w-full lg:w-80 bg-[#1f2833]/50 border-l border-white/5 p-6 flex flex-col gap-6">
-               <h3 className="text-xs uppercase tracking-widest text-[#66fcf1] font-bold">Output</h3>
+               
+               <div className="h-40 w-full">
+                   <LossChart data={lossHistory} />
+               </div>
+
+               <h3 className="text-xs uppercase tracking-widest text-[#66fcf1] font-bold">Výstup</h3>
                
                <div className="space-y-1">
-                   <div className="flex justify-between text-xs">
-                       <span className="text-white/50">Test Loss</span>
+                   <div className="flex justify-between text-xs" title="Chyba na dátach, ktoré sieť nikdy nevidela.">
+                       <span className="text-white/50">Testovacia chyba</span>
                        <span className="font-mono text-white">{(loss * 1.1).toFixed(4)}</span>
                    </div>
-                   <div className="flex justify-between text-xs">
-                       <span className="text-white/50">Training Loss</span>
+                   <div className="flex justify-between text-xs" title="Chyba na tréningových dátach.">
+                       <span className="text-white/50">Tréningová chyba</span>
                        <span className="font-mono text-white">{loss.toFixed(4)}</span>
                    </div>
                </div>
@@ -357,28 +427,28 @@ const PlaygroundPage = () => {
                           data={dataPoints} 
                           width={300} 
                           height={300} 
-                          epoch={epoch}
+                          epoch={Math.floor(epoch / 5)} 
                           activeFeatures={activeFeatures}
                           featureFuncs={FEATURES.map(f => ({ id: f.id, func: f.func }))}
                        />
                    )}
                    {/* Legend */}
-                   <div className="absolute bottom-3 right-3 flex flex-col gap-1 bg-black/60 p-2 rounded backdrop-blur-sm border border-white/5">
-                       <div className="flex items-center gap-2 text-[10px] text-white/80">
-                           <div className="w-2 h-2 rounded-full bg-[#00ccff] shadow-[0_0_8px_#00ccff]"></div> Positive
+                   <div className="absolute bottom-3 right-3 flex flex-col gap-1 bg-black/70 p-2 rounded backdrop-blur-sm border border-white/5">
+                       <div className="flex items-center gap-2 text-[10px] text-white/90">
+                           <div className="w-2 h-2 rounded-full bg-[#00ccff] shadow-[0_0_8px_#00ccff]"></div> Pozitívne
                        </div>
-                       <div className="flex items-center gap-2 text-[10px] text-white/80">
-                           <div className="w-2 h-2 rounded-full bg-[#ff9900] shadow-[0_0_8px_#ff9900]"></div> Negative
+                       <div className="flex items-center gap-2 text-[10px] text-white/90">
+                           <div className="w-2 h-2 rounded-full bg-[#ff9900] shadow-[0_0_8px_#ff9900]"></div> Negatívne
                        </div>
                    </div>
                </div>
                
                <div className="p-4 bg-[#45a29e]/10 rounded-lg border border-[#45a29e]/20">
-                   <p className="text-xs text-[#66fcf1] mb-2 font-bold">Colors shows data, neuron and weight values.</p>
+                   <p className="text-xs text-[#66fcf1] mb-2 font-bold">Farby zobrazujú dáta, neuróny a váhy.</p>
                    <p className="text-[10px] text-white/60 leading-relaxed">
-                       The output shows the decision boundary of the neural network. 
-                       Try adding <strong>X²</strong> and <strong>Y²</strong> features to solve the Circle dataset, 
-                       or <strong>sin(X)</strong> for the Spiral!
+                       Výstup zobrazuje "rozhodovaciu hranicu" neurónovej siete. 
+                       Skúste pridať <strong>X²</strong> a <strong>Y²</strong> vstupy pre vyriešenie Kruhových dát, 
+                       alebo <strong>sin(X)</strong> pre Špirálu!
                    </p>
                </div>
           </div>

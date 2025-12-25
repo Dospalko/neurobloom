@@ -9,6 +9,7 @@ interface PlaygroundSceneProps {
   epoch: number; // Trigger updates
   featureLabels: string[];
   scenarioLabel?: string;
+  onNodeHover?: (node: { layer: number; index: number; x: number; y: number } | null) => void;
 }
 
 type NodePos = { id: string; pos: THREE.Vector3; layer: number; index: number; label?: string };
@@ -20,7 +21,7 @@ const nodeColor = (activation: number) => {
   return base.clone().lerp(hot, activation);
 };
 
-const SceneInner = ({ network, epoch, featureLabels, scenarioLabel }: PlaygroundSceneProps) => {
+const SceneInner = ({ network, epoch, featureLabels, scenarioLabel, onNodeHover }: PlaygroundSceneProps) => {
   const [hoveredConn, setHoveredConn] = useState<string | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
 
@@ -167,10 +168,12 @@ const SceneInner = ({ network, epoch, featureLabels, scenarioLabel }: Playground
             onPointerOver={(e) => {
               e.stopPropagation();
               setHoveredNode(node.id);
+              onNodeHover?.({ layer: node.layer, index: node.index, x: e.clientX, y: e.clientY });
             }}
             onPointerOut={(e) => {
               e.stopPropagation();
               setHoveredNode((current) => (current === node.id ? null : current));
+              onNodeHover?.(null);
             }}
           >
             <mesh>
@@ -208,7 +211,7 @@ const SceneInner = ({ network, epoch, featureLabels, scenarioLabel }: Playground
   );
 };
 
-const PlaygroundScene = ({ network, epoch, featureLabels, scenarioLabel }: PlaygroundSceneProps) => {
+const PlaygroundScene = ({ network, epoch, featureLabels, scenarioLabel, onNodeHover }: PlaygroundSceneProps) => {
   return (
     <Canvas camera={{ position: [0, 0, 14], fov: 50 }} dpr={[1, 2]} gl={{ antialias: true }}>
       <color attach="background" args={["#0b0c10"]} />
@@ -216,7 +219,13 @@ const PlaygroundScene = ({ network, epoch, featureLabels, scenarioLabel }: Playg
       <pointLight position={[10, 10, 10]} intensity={1.5} color="#00ccff" />
       <pointLight position={[-10, -10, -5]} intensity={1.0} color="#ff9900" />
 
-      <SceneInner network={network} epoch={epoch} featureLabels={featureLabels} scenarioLabel={scenarioLabel} />
+      <SceneInner 
+        network={network} 
+        epoch={epoch} 
+        featureLabels={featureLabels} 
+        scenarioLabel={scenarioLabel} 
+        onNodeHover={onNodeHover}
+      />
 
       <OrbitControls enablePan enableZoom enableRotate minDistance={5} maxDistance={30} />
     </Canvas>
