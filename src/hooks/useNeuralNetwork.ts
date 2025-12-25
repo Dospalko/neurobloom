@@ -231,18 +231,35 @@ export const useNeuralNetwork = () => {
         return [...updatedInputs, ...updatedHiddenOutput];
       });
 
-      setStats((prev) => ({
-        ...prev,
-        trainingEpochs: prev.trainingEpochs + 1,
-        // Mock accuracy for visual satisfaction
-        accuracy: Math.min(0.99, prev.accuracy + (tick % 100 === 0 ? 0.01 : 0)), 
-        ...detectTrainingIssues(
-          Math.min(0.99, prev.accuracy + 0.002),
-          Math.min(0.95, prev.accuracy),
-          prev.trainingEpochs + 1
-        ),
-      }));
-    }, 200); // Slower interval (200ms) for visibility
+      setStats((prev) => {
+        // Calculate abstract "Accuracy" based on network stability/strength
+        // High average connection weight = higher "confidence" = higher accuracy
+        const totalWeight = prev.totalConnections > 0 
+            ? neurons.reduce((sum, n) => sum + n.connections.reduce((s, c) => s + Math.abs(c.weight), 0), 0)
+            : 0;
+        const maxPossibleWeight = prev.totalConnections * 1.0; // Max weight is 1
+        
+        // Quality factor: how many output neurons are active? (Target: ~1-2 active outputs is good, 0 or all is bad)
+        const outputs = neurons.filter(n => n.type === 'output');
+        const activeOutputs = outputs.filter(n => n.activation > 0.7).length;
+        const outputQuality = outputs.length > 0 
+            ? (activeOutputs > 0 && activeOutputs < outputs.length / 2 ? 1 : 0.5)
+            : 0;
+
+        const rawAccuracy = maxPossibleWeight > 0 ? (totalWeight / maxPossibleWeight) * 0.8 + outputQuality * 0.2 : 0;
+        
+        // Smooth changes
+        const currentAcc = prev.accuracy;
+        const newAcc = currentAcc * 0.95 + rawAccuracy * 0.05;
+
+        return {
+            ...prev,
+            trainingEpochs: prev.trainingEpochs + 1,
+            accuracy: Math.min(0.99, newAcc),
+            ...detectTrainingIssues(newAcc, newAcc * 0.9, prev.trainingEpochs + 1)
+        };
+      });
+    }, 400); // Slower interval (400ms) for easier observation
   }, []);
 
   // Zastavenie trénovania

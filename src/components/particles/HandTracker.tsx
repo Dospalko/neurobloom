@@ -156,8 +156,8 @@ export const HandTracker: React.FC<HandTrackerProps> = ({ onTensionChange, onHan
 
   return (
     <div className="relative w-full h-full bg-black">
-      {loading && <div className="absolute inset-0 flex items-center justify-center text-white text-xs">Loading Model...</div>}
-      {error && <div className="absolute inset-0 flex items-center justify-center text-red-500 text-xs text-center p-2">{error}</div>}
+      {loading && <div className="absolute inset-0 flex items-center justify-center text-white text-xs">Načítavam model...</div>}
+      {error && <div className="absolute inset-0 flex items-center justify-center text-red-500 text-xs text-center p-2">{error === "Failed to load hand tracking model." ? "Nepodarilo sa načítať model sledovania rúk." : error === "Camera access denied." ? "Prístup ku kamere zamietnutý." : error}</div>}
       <video 
         ref={videoRef} 
         autoPlay 

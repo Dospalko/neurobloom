@@ -9,11 +9,11 @@ interface ControlsProps {
 }
 
 const TEMPLATES: { id: ParticleTemplate; label: string; icon: string }[] = [
-  { id: 'hearts', label: 'Hearts', icon: '♥' },
-  { id: 'flowers', label: 'Flowers', icon: '✿' },
+  { id: 'hearts', label: 'Srdcia', icon: '♥' },
+  { id: 'flowers', label: 'Kvety', icon: '✿' },
   { id: 'saturn', label: 'Saturn', icon: '🪐' },
-  { id: 'buddha', label: 'Buddha', icon: '🧘' },
-  { id: 'fireworks', label: 'Fireworks', icon: '🎆' },
+  { id: 'buddha', label: 'Budha', icon: '🧘' },
+  { id: 'fireworks', label: 'Ohňostroj', icon: '🎆' },
 ];
 
 const COLORS = [

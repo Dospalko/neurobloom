@@ -69,8 +69,8 @@ const ParticleSystemPage: React.FC = () => {
         
         {/* Helper text for mode */}
         <div className="absolute top-24 left-1/2 transform -translate-x-1/2 text-white/30 text-xs font-mono tracking-widest uppercase pointer-events-none">
-             {interactionMode === 'camera' && "Control with Hand Gestures"}
-             {interactionMode === 'voice' && "Control with Voice Commands"}
+             {interactionMode === 'camera' && "Ovládanie gestami rúk"}
+             {interactionMode === 'voice' && "Ovládanie hlasom"}
         </div>
         
         {/* Visual Cursor (Only visible if camera interaction is active) */}
@@ -103,7 +103,7 @@ const ParticleSystemPage: React.FC = () => {
              {/* Overlay to indicate it's just a view when disabled */}
              {interactionMode === 'voice' && (
                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px]">
-                     <span className="text-xs text-white/50 font-medium">Tracking Disabled</span>
+                     <span className="text-xs text-white/50 font-medium">Sledovanie vypnuté</span>
                  </div>
              )}
           </div>
@@ -119,7 +119,7 @@ const ParticleSystemPage: React.FC = () => {
           </div>
           
           <div className="absolute top-4 left-4 text-white/50 pointer-events-auto">
-            <a href="/" className="hover:text-white transition-colors">← Back</a>
+            <a href="/" className="hover:text-white transition-colors">← Späť</a>
           </div>
         </div>
       </div>

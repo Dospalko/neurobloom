@@ -18,7 +18,7 @@ export const InteractionModeSelector: React.FC<InteractionModeSelectorProps> = (
             : 'text-gray-400 hover:text-white hover:bg-white/5'
         }`}
       >
-        📷 Camera
+        📷 Kamera
       </button>
       
       <div className="w-px h-4 bg-white/10" />
@@ -31,7 +31,7 @@ export const InteractionModeSelector: React.FC<InteractionModeSelectorProps> = (
             : 'text-gray-400 hover:text-white hover:bg-white/5'
         }`}
       >
-        🎙️ Voice
+        🎙️ Hlas
       </button>
     </div>
   );

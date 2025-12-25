@@ -7,6 +7,124 @@ import { Neuron as NeuronType } from "../../simulation/types";
 import Neuron from "./Neuron";
 import Connection from "./Connection";
 
+
+
+// Component for visualizing signal flow (particles traveling along connections)
+const DataFlowParticles = ({ neurons }: { neurons: NeuronType[] }) => {
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  
+  // Flatten connections but include activation context
+  const activeConnections = useMemo(() => {
+    return neurons.flatMap(n => n.connections.map(c => ({ 
+        ...c, 
+        start: n.position, 
+        end: neurons.find(target => target.id === c.to)?.position,
+        sourceActivation: n.activation,
+        sourceId: n.id
+    }))).filter(c => c.end);
+  }, [neurons]);
+  
+  const particleCount = 200;
+  
+  // State for particles
+  const particles = useMemo(() => {
+     return Array.from({ length: particleCount }).map(() => ({
+         connIndex: -1, // Start unassigned
+         progress: 0,
+         speed: 0,
+         offset: Math.random() * 10,
+         isActive: false
+     }));
+  }, [particleCount]);
+
+  useFrame((state) => {
+      if (!meshRef.current || activeConnections.length === 0) return;
+      
+      let renderedCount = 0;
+      
+      // Update particles
+      for (let i = 0; i < particleCount; i++) {
+          const p = particles[i];
+          
+          // If inactive, try to spawn on an active connection
+          if (!p.isActive) {
+              // Pick a random connection, but weigh heavily towards active ones?
+              // Simple approach: Pick random, check if active. If not, wait.
+              // To make it unambiguous: Only spawn if source activation > 0.1
+              
+              // Try up to 5 times to find an active connection to spawn on
+              for(let tryCount=0; tryCount < 5; tryCount++) {
+                  const idx = Math.floor(Math.random() * activeConnections.length);
+                  const conn = activeConnections[idx];
+                  
+                  if (conn.sourceActivation > 0.1) {
+                      p.connIndex = idx;
+                      p.progress = 0;
+                      // Speed correlates with connection strength
+                      p.speed = 0.005 + Math.abs(conn.weight) * 0.015; 
+                      p.isActive = true;
+                      break;
+                  }
+              }
+          }
+          
+          // Process active particles
+          if (p.isActive) {
+              const conn = activeConnections[p.connIndex];
+              
+              // Edge case: connection disappeared
+              if (!conn) {
+                  p.isActive = false;
+                  continue;
+              }
+
+              p.progress += p.speed;
+              
+              if (p.progress >= 1) {
+                  p.isActive = false; // Reset
+              } else {
+                  // Rendering
+                  const pos = new THREE.Vector3().lerpVectors(conn.start, conn.end!, p.progress);
+                  dummy.position.copy(pos);
+                  
+                  // Scale based on "pulse" roughly
+                  const scale = (0.08 + Math.abs(conn.weight) * 0.1) * (1 - Math.abs(0.5 - p.progress));
+                  dummy.scale.setScalar(scale);
+                  
+                  dummy.updateMatrix();
+                  meshRef.current.setMatrixAt(renderedCount, dummy.matrix);
+                  
+                  // Color: Cyan for positive, Purple for negative
+                  const color = conn.weight > 0 ? new THREE.Color("#00D4FF") : new THREE.Color("#B565FF");
+                  color.lerp(new THREE.Color("#ffffff"), 0.7); // Very bright core
+                  
+                  meshRef.current.setColorAt(renderedCount, color);
+                  renderedCount++;
+              }
+          }
+      }
+      
+      meshRef.current.count = renderedCount;
+      meshRef.current.instanceMatrix.needsUpdate = true;
+      if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true;
+  });
+
+  if (activeConnections.length === 0) return null;
+
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, particleCount]}>
+      <sphereGeometry args={[1, 8, 8]} />
+      <meshBasicMaterial 
+        color="#ffffff"
+        transparent 
+        opacity={0.9}
+        toneMapped={false}
+      />
+    </instancedMesh>
+  );
+};
+
 // Gradient pozadie component
 const GradientBackground = () => {
   const { camera } = useThree();
@@ -329,6 +447,9 @@ const NeuralNetworkScene = forwardRef<NeuralNetworkSceneHandle, NeuralNetworkSce
           <Connection key={conn.id} connection={conn} neurons={neurons} />
         ))}
         
+        {/* Signal Flow Particles */}
+        <DataFlowParticles neurons={neurons} />
+
         {/* Fog pre atmosféru */}
         <fog attach="fog" args={["#050510", 25, 70]} />
 
