@@ -68,8 +68,8 @@ const LoadingScreen = ({ onFinished }: LoadingScreenProps) => {
       setTimeout(() => {
         setVisible(false);
         onFinished();
-      }, 500); // Wait for fade out
-    }, 2500); // Show for 2.5 seconds
+      }, 500); // Počkať na zmiznutie (fade out)
+    }, 2500); // Zobraziť na 2.5 sekundy
 
     return () => clearTimeout(timer);
   }, [onFinished]);

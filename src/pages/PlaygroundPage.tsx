@@ -16,7 +16,7 @@ const DATASETS = [
 const ACTIVATIONS: ActivationFunction[] = ["relu", "tanh", "sigmoid", "linear"];
 const PROBLEMS = ["Classification", "Regression"];
 
-// Feature definitions
+// Definície vlastností
 export type FeatureId = 'x' | 'y' | 'x2' | 'y2' | 'xy' | 'sinx' | 'siny';
 const FEATURES: { id: FeatureId; label: string; func: (x: number, y: number) => number }[] = [
     { id: 'x', label: 'X₁', func: (x, y) => x },
@@ -31,7 +31,7 @@ const FEATURES: { id: FeatureId; label: string; func: (x: number, y: number) => 
 const PlaygroundPage = () => {
   const navigate = useNavigate();
 
-  // Network Configuration
+  // Konfigurácia siete
   const [hiddenLayers, setHiddenLayers] = useState<number[]>([4, 2]);
   const [activationFn, setActivationFn] = useState<ActivationFunction>('tanh');
   const [learningRate, setLearningRate] = useState(0.03);
@@ -39,18 +39,18 @@ const PlaygroundPage = () => {
   const [regRate, setRegRate] = useState(0);
   const [problem, setProblem] = useState(PROBLEMS[0]);
   
-  // Data Configuration
+  // Konfigurácia dát
   const [dataset, setDataset] = useState<string>(DATASETS[1].id);
   const [noise, setNoise] = useState(0);
   const [trainSplit, setTrainSplit] = useState(50);
   const [batchSize, setBatchSize] = useState(10);
   
-  // Features
+  // Vlastnosti
   const [activeFeatures, setActiveFeatures] = useState<Record<FeatureId, boolean>>({
       x: true, y: true, x2: false, y2: false, xy: false, sinx: false, siny: false
   });
 
-  // State
+  // Stav
   const [isTraining, setIsTraining] = useState(false);
   const [epoch, setEpoch] = useState(0);
   const [loss, setLoss] = useState(0);
@@ -59,11 +59,11 @@ const PlaygroundPage = () => {
   
   const [hoveredNode, setHoveredNode] = useState<{ layer: number, index: number, x: number, y: number } | null>(null);
 
-  // Refs
+  // Referencie
   const networkRef = useRef<NeuralNetwork | null>(null);
   const requestRef = useRef<number>();
   
-  // Calculate input size based on active features
+  // Vypočítať veľkosť vstupu na základe aktívnych vlastností
   const inputSize = useMemo(() => {
       return Object.values(activeFeatures).filter(v => v).length;
   }, [activeFeatures]);
@@ -78,9 +78,9 @@ const PlaygroundPage = () => {
     [dataset]
   );
 
-  // Initialize Network
+  // Inicializácia siete
   const initNetwork = useCallback(() => {
-      if (inputSize === 0) return; // Should probably handle this better
+      if (inputSize === 0) return; // Pravdepodobne by sa to malo riešiť lepšie
       
       const layerSizes = [inputSize, ...hiddenLayers, 1];
       const net = new NeuralNetwork(layerSizes);
@@ -91,23 +91,23 @@ const PlaygroundPage = () => {
       networkRef.current = net;
       setEpoch(0);
       setLoss(0);
-      setLossHistory([]); // Reset history
+      setLossHistory([]); // Resetovať históriu
   }, [hiddenLayers, activationFn, learningRate, regularization, regRate, inputSize]);
 
-  // Initialize Data
+  // Inicializácia dát
   useEffect(() => {
       const points = generateData(dataset, 200, noise);
       setDataPoints(points);
       initNetwork();
   }, [dataset, noise, initNetwork]);
 
-  // Training Loop
+  // Tréningová slučka
   const trainStep = useCallback(() => {
       if (!networkRef.current || !isTraining) return;
       
       const net = networkRef.current;
       
-      // Get active feature functions
+      // Získať funkcie aktívnych vlastností
       const featureFuncs = FEATURES.filter(f => activeFeatures[f.id]).map(f => f.func);
       if (featureFuncs.length === 0) return;
 
@@ -116,7 +116,7 @@ const PlaygroundPage = () => {
           const idx = Math.floor(Math.random() * dataPoints.length);
           const point = dataPoints[idx];
           
-          // Transform input
+          // Transformovať vstup
           const inputs = featureFuncs.map(fn => fn(point.x, point.y));
           
           net.forward(inputs);
@@ -136,7 +136,7 @@ const PlaygroundPage = () => {
                   const newHistory = [...prev, { 
                       epoch: nextEpoch, 
                       trainLoss: currentLoss, 
-                      testLoss: currentLoss * (1.1 + (Math.random() * 0.2)) // Simulating test loss for visually interesting graph
+                      testLoss: currentLoss * (1.1 + (Math.random() * 0.2)) // Simulovanie testovacej chyby pre vizuálne zaujímavý graf
                   }];
                   if (newHistory.length > 50) return newHistory.slice(newHistory.length - 50);
                   return newHistory;
@@ -159,16 +159,16 @@ const PlaygroundPage = () => {
       };
   }, [isTraining, trainStep]);
 
-  // Handlers
+  // Obsluhy (Handlers)
   const toggleFeature = (id: FeatureId) => {
       setActiveFeatures(prev => {
           const next = { ...prev, [id]: !prev[id] };
-          // Ensure at least one feature is active? Or just let it be 0 and fail gracefully
+          // Zabezpečiť aspoň jednu aktívnu vlastnosť? Alebo nechať 0 a handled gracefully
           return next;
       });
-      // Changing features changes network structure, so reset
+      // Zmena vlastností mení štruktúru siete, takže reset
       setIsTraining(false);
-      // initNetwork will trigger due to dependency on inputSize (derived from activeFeatures)
+      // initNetwork sa spustí kvôli závislosti na inputSize (odvodené z activeFeatures)
   };
 
   const addLayer = () => {
@@ -197,13 +197,13 @@ const PlaygroundPage = () => {
 
   return (
     <div className="min-h-screen bg-[#0b0c10] text-white flex flex-col font-sans">
-      {/* Top Bar */}
+      {/* Horná lišta */}
       <div className="bg-[#1f2833] border-b border-white/10 px-6 py-4 shadow-md z-10">
         <div className="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-6">
                  <h1 className="text-xl font-bold tracking-tight text-[#66fcf1]">NEUROBLOOM <span className="text-white/60 font-normal">IHRISKO</span></h1>
                  
-                 {/* Play Controls */}
+                 {/* Ovládanie prehrávania */}
                  <div className="flex items-center gap-2 bg-black/20 p-1 rounded-lg border border-white/5">
                     <button onClick={reset} className="w-10 h-10 rounded-md hover:bg-white/10 flex items-center justify-center text-white/70 hover:text-white transition" title="Reštartovať sieť">
                         ⟲
@@ -222,7 +222,7 @@ const PlaygroundPage = () => {
                  </div>
             </div>
 
-            {/* Hyperparameters */}
+            {/* Hyperparametre */}
             <div className="flex flex-wrap gap-4 text-xs">
                 <div className="flex flex-col gap-1" title="Ako rýchlo sa sieť učí. Príliš vysoká = nestabilné, príliš nízka = pomalé.">
                     <label className="text-white/50 uppercase">Rýchlosť učenia</label>
@@ -258,10 +258,10 @@ const PlaygroundPage = () => {
 
       <div className="flex-1 overflow-hidden relative flex flex-col lg:flex-row">
           
-          {/* LEFT COLUMN: Data & Features */}
+          {/* ĽAVÝ STĹPEC: Dáta a Vlastnosti */}
           <div className="w-full lg:w-80 bg-[#1f2833]/50 border-r border-white/5 p-6 flex flex-col gap-8 overflow-y-auto custom-scrollbar">
               
-              {/* DATA */}
+              {/* DÁTA */}
               <div className="space-y-3">
                   <h3 className="text-xs uppercase tracking-widest text-[#66fcf1] font-bold" title="Vyberte typ dát, ktoré sa má sieť naučiť klasifikovať.">Rozloženie dát</h3>
                   <div className="grid grid-cols-2 gap-2">
@@ -303,7 +303,7 @@ const PlaygroundPage = () => {
                   </div>
               </div>
 
-              {/* FEATURES */}
+              {/* VLASTNOSTI */}
               <div className="space-y-3">
                   <h3 className="text-xs uppercase tracking-widest text-[#66fcf1] font-bold" title="Vstupné vlastnosti, ktoré sieť vidí.">Vstupy / Vlastnosti</h3>
                   <p className="text-[10px] text-white/50">Ktoré vlastnosti chcete poslať do siete?</p>
@@ -324,11 +324,11 @@ const PlaygroundPage = () => {
               </div>
           </div>
 
-          {/* MIDDLE: Network Visualization */}
+          {/* STRED: Vizualizácia siete */}
           <div className="flex-1 flex flex-col relative bg-[#0b0c10]">
-              {/* Layer Controls */}
+              {/* Ovládanie vrstiev */}
               <div className="absolute top-4 left-0 right-0 flex justify-center items-start gap-8 z-10 pointer-events-none">
-                  {/* Hidden Layers Control */}
+                  {/* Ovládanie skrytých vrstiev */}
                   <div className="flex flex-col items-center pointer-events-auto">
                       <div className="flex items-center gap-2 mb-2 bg-[#0b0c10]/80 px-3 py-1 rounded-full border border-white/5 backdrop-blur-sm">
                           <button onClick={removeLayer} className="w-6 h-6 rounded bg-[#1f2833] border border-white/10 hover:border-white/50 text-white flex items-center justify-center transition" title="Odobrať skrytú vrstvu">-</button>
@@ -349,23 +349,23 @@ const PlaygroundPage = () => {
                   </div>
               </div>
 
-              {/* 3D Scene */}
+              {/* 3D Scéna */}
               <div className="flex-1 w-full h-full min-h-[400px] relative">
                   <PlaygroundScene 
                         network={networkRef.current} 
-                        epoch={Math.floor(epoch / 5)} // Throttled visual updates for stability
+                        epoch={Math.floor(epoch / 5)} // Obmedzené vizuálne aktualizácie pre stabilitu
                         featureLabels={activeFeatureLabels}
                         scenarioLabel={scenarioLabel}
                         onNodeHover={setHoveredNode}
                    />
 
-                   {/* Neuron Preview Tooltip */}
+                   {/* Nástrojový tip ukážky neurónu */}
                    {hoveredNode && networkRef.current && (
                        <div 
                             style={{ 
                                 position: 'fixed', 
                                 left: hoveredNode.x + 20, 
-                                top: hoveredNode.y - 80, // Moved up slightly to not cover cursor
+                                top: hoveredNode.y - 80, // Mierne posunuté hore, aby nezakrývalo kurzor
                                 zIndex: 100,
                                 pointerEvents: 'none'
                              }}
@@ -380,7 +380,7 @@ const PlaygroundPage = () => {
                    )}
               </div>
 
-              {/* Legend for 3D Scene */}
+              {/* Legenda pre 3D scénu */}
               <div className="absolute bottom-4 left-4 p-3 bg-black/60 backdrop-blur-md border border-white/10 rounded-lg text-[10px] pointer-events-none select-none">
                 <h4 className="text-white/60 uppercase tracking-widest mb-2 font-bold">Vysvetlivky</h4>
                 <div className="flex flex-col gap-1.5">
@@ -400,7 +400,7 @@ const PlaygroundPage = () => {
               </div>
           </div>
 
-          {/* RIGHT COLUMN: Output */}
+          {/* PRAVÝ STĹPEC: Výstup */}
           <div className="w-full lg:w-80 bg-[#1f2833]/50 border-l border-white/5 p-6 flex flex-col gap-6">
                
                <div className="h-40 w-full">
@@ -432,7 +432,7 @@ const PlaygroundPage = () => {
                           featureFuncs={FEATURES.map(f => ({ id: f.id, func: f.func }))}
                        />
                    )}
-                   {/* Legend */}
+                   {/* Legenda */}
                    <div className="absolute bottom-3 right-3 flex flex-col gap-1 bg-black/70 p-2 rounded backdrop-blur-sm border border-white/5">
                        <div className="flex items-center gap-2 text-[10px] text-white/90">
                            <div className="w-2 h-2 rounded-full bg-[#00ccff] shadow-[0_0_8px_#00ccff]"></div> Pozitívne

@@ -51,7 +51,7 @@ const SimulationPage = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-neuro-dark">
-      {/* Header */}
+      {/* Hlavička */}
       <header className="relative z-10 px-6 py-3">
         <div className="mx-auto flex flex-col gap-4">
           <div className="flex items-center justify-between">
@@ -78,13 +78,13 @@ const SimulationPage = () => {
         </div>
       </header>
 
-      {/* Main content */}
+      {/* Hlavný obsah */}
       <main className="relative z-10 px-6 pb-6">
         <div className="mx-auto space-y-4">
 
-          {/* Scene with side panels */}
+          {/* Scéna s bočnými panelmi */}
           <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_260px] gap-4 items-start">
-            {/* Left: Controls */}
+            {/* Vľavo: Ovládanie */}
             <div className="panel p-4 space-y-4">
               <AlgorithmPanel
                 onRunAlgorithm={runAlgorithm}
@@ -102,7 +102,7 @@ const SimulationPage = () => {
               />
             </div>
 
-            {/* Center: 3D Scene */}
+            {/* Stred: 3D Scéna */}
             <div className="h-full panel overflow-hidden relative">
               <NeuralNetworkScene
                 ref={sceneRef}
@@ -112,7 +112,7 @@ const SimulationPage = () => {
                 onNeuronClick={(id) => setSelectedNeuronId(id)}
               />
               
-              {/* Algorithm Info Overlay */}
+              {/* Prekrytie s informáciami o algoritme */}
               <AlgorithmInfoOverlay
                 currentAlgorithm={currentAlgorithm}
                 isRunning={isAlgorithmRunning}
@@ -122,7 +122,7 @@ const SimulationPage = () => {
               />
             </div>
 
-            {/* Right: Reference & stats */}
+            {/* Vpravo: Referencie a štatistiky */}
             <div className="space-y-4">
               <div className="panel p-4 space-y-4">
                 <StatsDisplay stats={stats} />

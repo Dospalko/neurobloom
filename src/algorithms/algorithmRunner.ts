@@ -93,7 +93,7 @@ export class AlgorithmRunner {
       const distance = neuron.position.distanceTo(center);
       const diff = Math.abs(distance - currentRadius);
       
-      // Track neurón closest to wave front
+      // Sledovať neurón najbližšie k čelu vlny
       if (diff < minDiff) {
         minDiff = diff;
         closestNeuron = neuron;
@@ -141,7 +141,7 @@ export class AlgorithmRunner {
       
       neuron.activation = activation * expansionPhase * 0.9;
       
-      // Track highest activation
+      // Sledovať najvyššiu aktiváciu
       if (neuron.activation > maxActivation) {
         maxActivation = neuron.activation;
         mostActiveNeuron = neuron;
@@ -193,7 +193,7 @@ export class AlgorithmRunner {
         const curve = Math.sin((timeSinceActivation / 3) * Math.PI);
         neuron.activation = curve * 0.95; // Vyššia aktivácia
         
-        // Track currently activating neuron (peak of curve)
+        // Sledovať aktuálne sa aktivujúci neurón (vrchol krivky)
         if (timeSinceActivation < 1.5 && timeSinceActivation > 0.5) {
           currentlyActivatingNeuron = neuron;
         }
@@ -233,7 +233,7 @@ export class AlgorithmRunner {
       // Vyššia aktivácia
       neuron.activation = localPulse * 0.9;
       
-      // Track highest pulse
+      // Sledovať najvyšší pulz
       if (localPulse > maxPulse) {
         maxPulse = localPulse;
         mostPulsingNeuron = neuron;
@@ -276,7 +276,7 @@ export class AlgorithmRunner {
       if (neuron) {
         neuron.activation = 0.95; // Vyššia aktivácia
         
-        // Track this as current
+        // Sledovať tento ako aktuálny
         this.currentProcessingNeuron = neuron;
         
         // VÝRAZNÁ oranžová - nasilu!

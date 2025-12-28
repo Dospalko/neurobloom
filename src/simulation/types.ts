@@ -15,8 +15,8 @@ export interface Neuron {
 
 export interface Connection {
   id: string;
-  from: string; // neuron ID
-  to: string; // neuron ID
+  from: string; // ID neurónu
+  to: string; // ID neurónu
   weight: number; // -1 až 1
   strength: number; // 0-1 (viditeľnosť)
   age: number;

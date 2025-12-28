@@ -171,7 +171,7 @@ const HomePage = () => {
   );
 };
 
-// Wrapper for InfoSection to add motion
+// Obal pre InfoSection na pridanie pohybu
 const InfoSectionWithMotion = ({ title, description, align, delay }: any) => {
   return (
     <motion.div

@@ -55,7 +55,7 @@ const AlgorithmInfoOverlay = ({
   return (
     <div className="absolute top-6 left-6 z-20 pointer-events-none max-w-[calc(100%-8rem)]">
       <div className="glass-effect rounded-2xl border border-white/20 px-5 py-2 w-full sm:w-[380px] backdrop-blur-xl">
-        {/* Header */}
+        {/* Hlavička */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <div 
@@ -71,7 +71,7 @@ const AlgorithmInfoOverlay = ({
           </div>
         </div>
 
-        {/* Progress bar */}
+        {/* Ukazovateľ priebehu */}
         <div className="relative w-full h-1.5 bg-black/40 rounded-full overflow-hidden mb-3">
           <div 
             className="absolute inset-y-0 left-0 rounded-full transition-all duration-300"
@@ -83,7 +83,7 @@ const AlgorithmInfoOverlay = ({
           />
         </div>
 
-        {/* Status */}
+        {/* Stav */}
         <div className="space-y-2">
           <div className={`text-xs font-semibold ${phaseColors[phase]}`}>
             {phaseMessages[phase]}
@@ -116,7 +116,7 @@ const AlgorithmInfoOverlay = ({
           )}
         </div>
 
-        {/* Legend - len počas behu */}
+        {/* Legenda - len počas behu */}
         {phase === 'running' && (
           <div className="mt-3 pt-3 border-t border-white/10">
             <div className="grid grid-cols-3 gap-1.5">

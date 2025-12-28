@@ -9,11 +9,11 @@ export interface Point {
 
 export class Node {
   id: string;
-  bias: number = 0.1; // Initialize with small bias
+  bias: number = 0.1; // Inicializovať s malým biasom
   weights: { [nodeId: string]: number } = {};
   output: number = 0;
   totalInput: number = 0;
-  delta: number = 0; // Error gradient
+  delta: number = 0; // Gradient chyby
 
   constructor(id: string) {
     this.id = id;
@@ -40,14 +40,14 @@ export class NeuralNetwork {
   regularizationRate: number = 0;
 
   constructor(layerSizes: number[]) {
-    // Build network structure
+    // Vybudovať štruktúru siete
     for (let i = 0; i < layerSizes.length; i++) {
       const layer: Node[] = [];
       for (let j = 0; j < layerSizes[i]; j++) {
         const node = new Node(`${i}_${j}`);
         layer.push(node);
         
-        // Connect to previous layer
+        // Pripojiť k predchádzajúcej vrstve
         if (i > 0) {
           const prevLayer = this.layers[i - 1];
           prevLayer.forEach(prevNode => {
@@ -62,13 +62,13 @@ export class NeuralNetwork {
   }
 
   forward(inputs: number[]): number {
-    // Input layer
+    // Vstupná vrstva
     const inputLayer = this.layers[0];
     for (let i = 0; i < inputLayer.length; i++) {
       inputLayer[i].output = inputs[i];
     }
 
-    // Hidden & Output layers
+    // Skryté & Výstupné vrstvy
     for (let i = 1; i < this.layers.length; i++) {
       const layer = this.layers[i];
       const prevLayer = this.layers[i - 1];
@@ -79,8 +79,8 @@ export class NeuralNetwork {
         
         for (let k = 0; k < prevLayer.length; k++) {
           const prevNode = prevLayer[k];
-          // Find link weight (optimization: store links better?)
-          // For now, linear search or map is fine for small playground nets
+          // Nájsť váhu spojenia (optimalizácia: ukladať spojenia lepšie?)
+          // Zatiaľ stačí lineárne vyhľadávanie alebo mapa pre malé siete ihriska
           const link = this.links.find(l => l.source === prevNode && l.dest === node);
           if (link) {
               sum += prevNode.output * link.weight;
@@ -99,13 +99,13 @@ export class NeuralNetwork {
     const outputLayer = this.layers[this.layers.length - 1];
     const outputNode = outputLayer[0];
     
-    // Output error (assuming Mean Squared Error for regression/classification playground)
-    // Derivative of MSE: (output - target)
-    // Multiplied by derivative of activation
+    // Výstupná chyba (predpokladáme Mean Squared Error pre ihrisko regresie/klasifikácie)
+    // Derivácia MSE: (výstup - cieľ)
+    // Vynásobené deriváciou aktivácie
     const outputDeriv = this.applyActivationDeriv(outputNode.totalInput);
     outputNode.delta = (outputNode.output - target) * outputDeriv;
 
-    // Backpropagate
+    // Spätná propagácia
     for (let i = this.layers.length - 2; i >= 0; i--) {
       const layer = this.layers[i];
       const nextLayer = this.layers[i + 1];
@@ -126,12 +126,12 @@ export class NeuralNetwork {
       }
     }
 
-    // Update weights
+    // Aktualizovať váhy
     for (let i = 0; i < this.links.length; i++) {
       const link = this.links[i];
       const gradient = link.source.output * link.dest.delta;
       
-      // Regularization
+      // Regularizácia
       let regTerm = 0;
       if (this.regularization === 'l1') {
           regTerm = this.regularizationRate * (link.weight > 0 ? 1 : -1);
@@ -142,7 +142,7 @@ export class NeuralNetwork {
       link.weight -= this.learningRate * (gradient + regTerm);
     }
 
-    // Update biases
+    // Aktualizovať biasy
     for (let i = 1; i < this.layers.length; i++) {
       const layer = this.layers[i];
       for (let j = 0; j < layer.length; j++) {
@@ -179,44 +179,44 @@ export class NeuralNetwork {
   }
 }
 
-// Dataset Generators
+// Generátory datasetov
 export const generateData = (type: string, count: number, noise: number): Point[] => {
     const points: Point[] = [];
-    const rand = () => (Math.random() - 0.5) * 2; // -1 to 1
+    const rand = () => (Math.random() - 0.5) * 2; // -1 až 1
 
     for (let i = 0; i < count; i++) {
-        let x = rand() * 5; // Scale to -5 to 5
+        let x = rand() * 5; // Škálovať na -5 až 5
         let y = rand() * 5;
         let label = 0;
 
         if (type === 'circle') {
-            // Circle: Inside radius 2.5 is class 1
+            // Kruh: Vnútri polomeru 2.5 je trieda 1
             const dist = Math.sqrt(x*x + y*y);
             label = dist < 2.5 ? 1 : -1;
         } else if (type === 'xor') {
-            // XOR: Quadrants
+            // XOR: Kvadranty
             label = (x > 0 && y > 0) || (x < 0 && y < 0) ? 1 : -1;
         } else if (type === 'gauss') {
-            // Two clusters
+            // Dva zhluky
             if (Math.random() > 0.5) {
-                x = 2 + rand(); // Cluster 1
+                x = 2 + rand(); // Zhluk 1
                 y = 2 + rand();
                 label = 1;
             } else {
-                x = -2 + rand(); // Cluster 2
+                x = -2 + rand(); // Zhluk 2
                 y = -2 + rand();
                 label = -1;
             }
         } else if (type === 'spiral') {
-            // Spiral
+            // Špirála
             const n = i / count;
             const r = n * 5;
             const t = 1.75 * n * 2 * Math.PI;
-            x = r * Math.sin(t) + rand() * 0.1; // Add noise here
+            x = r * Math.sin(t) + rand() * 0.1; // Pridať šum tu
             y = r * Math.cos(t) + rand() * 0.1;
             label = 1;
-            // Second arm? This is a single arm generator logic simplified
-            // Let's do proper 2-arm spiral
+            // Druhé rameno? Toto je zjednodušená logika generátora s jedným ramenom
+            // Spravme poriadnu 2-ramennú špirálu
             const arm = Math.random() > 0.5 ? 1 : -1;
             const r2 = Math.random() * 5;
             const t2 = (r2 / 5) * 2 * Math.PI + (arm === 1 ? 0 : Math.PI);
@@ -225,7 +225,7 @@ export const generateData = (type: string, count: number, noise: number): Point[
             label = arm;
         }
 
-        // Add noise
+        // Pridať šum
         x += (Math.random() - 0.5) * (noise / 10);
         y += (Math.random() - 0.5) * (noise / 10);
 

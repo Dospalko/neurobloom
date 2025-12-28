@@ -151,42 +151,42 @@ export const useNeuralNetwork = () => {
     trainingInterval.current = setInterval(() => {
       tick++;
       
-      // Pattern Generation: Switch pattern every 20 ticks (approx 4 seconds)
-      // Pattern A: Activate Input Neurons 0, 1, 2
-      // Pattern B: Activate Input Neurons 3, 4, 5
+      // Generovanie vzorov: Prepnutie vzoru každých 20 tikov (cca 4 sekundy)
+      // Vzor A: Aktivovať vstupné neuróny 0, 1, 2
+      // Vzor B: Aktivovať vstupné neuróny 3, 4, 5
       const patternPhase = Math.floor(tick / 20) % 2; 
       const patternName = patternPhase === 0 ? "Pattern A (Even Inputs)" : "Pattern B (Odd Inputs)";
       
-      // Update state only if changed to avoid excessive re-renders
+      // Aktualizovať stav iba pri zmene, aby sa predišlo nadmernému pre-renderovaniu
       setCurrentPattern(prev => prev !== patternName ? patternName : prev);
 
       setNeurons((prev) => {
-        // 1. Calculate Activations (Forward Pass)
-        // We need to do this in topological order or just synchronous update?
-        // Synchronous update (cellular automaton style) is easier for this visual.
+        // 1. Vypočítať aktivácie (Forward Pass)
+        // Musíme to robiť v topologickom poradí alebo stačí synchrónna aktualizácia?
+        // Synchrónna aktualizácia (štýl celulárneho automatu) je pre tento vizuál jednoduchšia.
         
-        // First, set inputs based on pattern
+        // Najprv nastaviť vstupy na základe vzoru
         const inputNeurons = prev.filter(n => n.type === 'input');
         const hiddenOutputNeurons = prev.filter(n => n.type !== 'input');
         
-        // Update Inputs
+        // Aktualizovať vstupy
         const updatedInputs = inputNeurons.map((neuron, idx) => {
-             let targetActivation = 0.1; // Noise
+             let targetActivation = 0.1; // Šum
              if (patternPhase === 0) {
-                 if (idx % 2 === 0) targetActivation = 0.9; // Pattern A: Evens
+                 if (idx % 2 === 0) targetActivation = 0.9; // Vzor A: Párne
              } else {
-                 if (idx % 2 === 1) targetActivation = 0.9; // Pattern B: Odds
+                 if (idx % 2 === 1) targetActivation = 0.9; // Vzor B: Nepárne
              }
              
              return {
                  ...neuron,
-                 activation: neuron.activation * 0.8 + targetActivation * 0.2, // Smooth transition
+                 activation: neuron.activation * 0.8 + targetActivation * 0.2, // Plynulý prechod
                  trainingCount: neuron.trainingCount + 1
              };
         });
 
-        // Update Hidden/Output (based on PREVIOUS state of inputs/others)
-        // We use the 'prev' array for source values to simulate simultaneous firing
+        // Aktualizovať Skryté/Výstupné (na základe PREDCHÁDZAJÚCEHO stavu vstupov/ostatných)
+        // Používame pole 'prev' pre zdrojové hodnoty na simuláciu súčasného spustenia
         const updatedHiddenOutput = hiddenOutputNeurons.map(neuron => {
              const inputs = new Map<string, number>();
              neuron.connections.forEach(conn => {
@@ -196,7 +196,7 @@ export const useNeuralNetwork = () => {
              
              const newActivation = activateNeuron(neuron, inputs);
              
-             // Hebbian Learning: Update weights based on correlation
+             // Hebbovské učenie: Aktualizácia váh na základe korelácie
              const updatedConnections = neuron.connections.map(conn => {
                  const source = prev.find(n => n.id === conn.from);
                  if (!source) return conn;
@@ -232,14 +232,14 @@ export const useNeuralNetwork = () => {
       });
 
       setStats((prev) => {
-        // Calculate abstract "Accuracy" based on network stability/strength
-        // High average connection weight = higher "confidence" = higher accuracy
+        // Vypočítať abstraktnú "Presnosť" na základe stability/sily siete
+        // Vysoká priemerná váha spojenia = vyššia "istota" = vyššia presnosť
         const totalWeight = prev.totalConnections > 0 
             ? neurons.reduce((sum, n) => sum + n.connections.reduce((s, c) => s + Math.abs(c.weight), 0), 0)
             : 0;
-        const maxPossibleWeight = prev.totalConnections * 1.0; // Max weight is 1
+        const maxPossibleWeight = prev.totalConnections * 1.0; // Max váha je 1
         
-        // Quality factor: how many output neurons are active? (Target: ~1-2 active outputs is good, 0 or all is bad)
+        // Faktor kvality: koľko výstupných neurónov je aktívnych? (Cieľ: ~1-2 aktívnych výstupov je dobré, 0 alebo všetky je zlé)
         const outputs = neurons.filter(n => n.type === 'output');
         const activeOutputs = outputs.filter(n => n.activation > 0.7).length;
         const outputQuality = outputs.length > 0 
@@ -248,7 +248,7 @@ export const useNeuralNetwork = () => {
 
         const rawAccuracy = maxPossibleWeight > 0 ? (totalWeight / maxPossibleWeight) * 0.8 + outputQuality * 0.2 : 0;
         
-        // Smooth changes
+        // Plynulé zmeny
         const currentAcc = prev.accuracy;
         const newAcc = currentAcc * 0.95 + rawAccuracy * 0.05;
 
@@ -259,7 +259,7 @@ export const useNeuralNetwork = () => {
             ...detectTrainingIssues(newAcc, newAcc * 0.9, prev.trainingEpochs + 1)
         };
       });
-    }, 400); // Slower interval (400ms) for easier observation
+    }, 400); // Pomalší interval (400ms) pre ľahšie pozorovanie
   }, []);
 
   // Zastavenie trénovania
@@ -308,7 +308,7 @@ export const useNeuralNetwork = () => {
     setCurrentAlgorithm(algorithmType);
     setAlgorithmProgress(0);
     setNeuronsCreated(0);
-    setIsStatsLocked(true); // Lock stats podczas algoritmu
+    setIsStatsLocked(true); // Zamknúť štatistiky počas algoritmu
     algorithmStartTime.current = Date.now();
     
     // Vytvor neuróny ak ich je málo (menej ako 40)
@@ -402,13 +402,13 @@ export const useNeuralNetwork = () => {
     setIsAlgorithmRunning(false);
     setCurrentAlgorithm(null);
     setCurrentProcessingNeuron(null);
-    setIsStatsLocked(false); // Unlock stats
+    setIsStatsLocked(false); // Odomknúť štatistiky
   }, []);
 
   // Update algoritmov v animation loop + progress tracking
   useEffect(() => {
     if (isAlgorithmRunning && algorithmRunner.current) {
-      // Speed mapping: slow=200ms, normal=120ms, fast=50ms
+      // Mapovanie rýchlosti: pomalá=200ms, normálna=120ms, rýchla=50ms
       const intervalMs = algorithmSpeed === 'slow' ? 200 : algorithmSpeed === 'normal' ? 120 : 50;
       
       const intervalId = setInterval(() => {
@@ -417,14 +417,14 @@ export const useNeuralNetwork = () => {
           algorithmRunner.current.updateNeurons(neurons);
           algorithmRunner.current.update();
           
-          // Get current processing neuron from algorithm runner
+          // Získať aktuálne spracovávaný neurón z bežca algoritmu
           const currentNeuron = algorithmRunner.current.getCurrentNeuron();
           if (currentNeuron) {
             setCurrentProcessingNeuron(currentNeuron);
           }
         }
         
-        // Update progress
+        // Aktualizovať priebeh
         if (algorithmStartTime.current > 0 && currentAlgorithm) {
           const algorithm = ALGORITHMS.find(a => a.id === currentAlgorithm);
           if (algorithm) {

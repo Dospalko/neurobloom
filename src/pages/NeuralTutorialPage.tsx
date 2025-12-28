@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import Tutorial3DScene from '../components/Tutorial3DScene';
 
-// Tutorial Steps Data
+// Dáta krokov tutoriálu
 const tutorialSteps = [
   {
     id: 'intro',
@@ -71,7 +71,7 @@ const NeuralTutorialPage = () => {
                 Domov
              </button>
 
-             {/* Progress Dots */}
+             {/* Bodky postupu */}
              <div className="flex gap-3 bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/5">
                 {tutorialSteps.map((_, index) => (
                     <button
@@ -83,7 +83,7 @@ const NeuralTutorialPage = () => {
             </div>
         </nav>
 
-        {/* Content Card (Bottom Left, smaller to not block output) */}
+        {/* Karta obsahu (vľavo dole, menšia aby neblokovala výstup) */}
         <div className="flex items-end justify-start pointer-events-auto pb-10">
             <motion.div 
                key={currentStep}

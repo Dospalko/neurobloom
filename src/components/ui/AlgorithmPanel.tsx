@@ -52,7 +52,7 @@ const AlgorithmPanel = ({
         </div>
       </div>
 
-      {/* Algorithm list */}
+      {/* Zoznam algoritmov */}
       <div className="space-y-2">
         {ALGORITHMS.map((algorithm) => {
           const isActive = currentAlgorithm === algorithm.id;

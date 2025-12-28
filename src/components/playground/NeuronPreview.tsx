@@ -20,7 +20,7 @@ const NeuronPreview: React.FC<NeuronPreviewProps> = ({ network, targetNode, widt
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Draw Decision Boundary (Heatmap) for the specific neuron
+    // Vykresliť hranicu rozhodovania (Teplotná mapa) pre konkrétny neurón
     const imageData = ctx.createImageData(width, height);
     const pixels = imageData.data;
     
@@ -37,30 +37,30 @@ const NeuronPreview: React.FC<NeuronPreviewProps> = ({ network, targetNode, widt
             ? activeFuncs.map(fn => fn(cx, cy))
             : [cx, cy];
 
-        // Run forward pass to update state
+        // Spustiť forward pass na aktualizáciu stavu
         network.forward(inputs);
         
-        // Grab the specific neuron's output
-        // Safety check
+        // Získať výstup konkrétneho neurónu
+        // Bezpečnostná kontrola
         let val = 0;
         if (network.layers[targetNode.layer] && network.layers[targetNode.layer][targetNode.index]) {
-             // Use output directly. It might be post-activation or pre-activation depending on implementation.
-             // Usually for visualization we want post-activation.
-             // Since we called forward(), the .output property is updated.
-             // Note: forward() returns the final output, but it updates all nodes as side-effect.
+             // Použiť výstup priamo. Možno je to pred-aktivácia alebo po-aktivácia v závislosti od implementácie.
+             // Zvyčajne pre vizualizáciu chceme po-aktiváciu.
+             // Keďže sme zavolali forward(), vlastnosť .output je aktualizovaná.
+             // Poznámka: forward() vracia finálny výstup, ale aktualizuje všetky uzly ako vedľajší efekt.
              val = network.layers[targetNode.layer][targetNode.index].output;
              
-             // If this is not the output layer, apply tanh visualization?
-             // Actually, the node.output is ALREADY activated in forward() method of NeuralNetwork.ts:
+             // Ak toto nie je výstupná vrstva, aplikovať tanh vizualizáciu?
+             // Vlastne, node.output je UŽ aktivovaný v metóde forward() v NeuralNetwork.ts:
              // node.output = this.applyActivation(sum);
-             // So 'val' is already in range [-1, 1] (roughly, if tanh)
+             // Takže 'val' je už v rozsahu [-1, 1] (približne, ak tanh)
         }
 
         const idx = (y * width + x) * 4;
         
-        // Color map: -1 (Orange) to 1 (Blue)
-        // Range might need clamping if using ReLU etc, but let's assume Tanh for visually pleasing results
-        // or clamp for robustness.
+        // Mapa farieb: -1 (Oranžová) do 1 (Modrá)
+        // Rozsah môže vyžadovať orezanie ak sa používa ReLU atď, ale predpokladajme Tanh pre vizuálne pekné výsledky
+        // alebo orezať pre robustnosť.
         const clampedVal = Math.max(-1, Math.min(1, val));
         
         let r, g, b;
@@ -79,7 +79,7 @@ const NeuronPreview: React.FC<NeuronPreviewProps> = ({ network, targetNode, widt
         pixels[idx] = r;
         pixels[idx + 1] = g;
         pixels[idx + 2] = b;
-        pixels[idx + 3] = 255; // Full opacity
+        pixels[idx + 3] = 255; // Plná nepriehľadnosť
       }
     }
     ctx.putImageData(imageData, 0, 0);

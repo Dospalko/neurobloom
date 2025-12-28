@@ -4,9 +4,9 @@ const Footer = () => {
   return (
     <footer className="relative px-6 py-12 border-t border-white/10 bg-black/20">
       <div className="max-w-7xl mx-auto">
-        {/* Main content */}
+        {/* Hlavný obsah */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-          {/* Brand section */}
+          {/* Sekcia značky */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 bg-neuro-blue rounded-full animate-pulse" />
@@ -22,7 +22,7 @@ const Footer = () => {
             </div>
           </div>
           
-          {/* Technologies */}
+          {/* Technológie */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold text-white uppercase tracking-wider">Technológie</h4>
             <ul className="space-y-1.5 text-xs text-gray-500 font-mono">
@@ -34,7 +34,7 @@ const Footer = () => {
             </ul>
           </div>
           
-          {/* Features */}
+          {/* Funkcie */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold text-white uppercase tracking-wider">Funkcie</h4>
             <ul className="space-y-1.5 text-xs text-gray-500 font-mono">
@@ -46,7 +46,7 @@ const Footer = () => {
           </div>
         </div>
         
-        {/* Bottom bar */}
+        {/* Spodná lišta */}
         <div className="pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-3">
           <p className="text-xs text-gray-600 font-mono">
             © {currentYear} NeuroBloom · <span className="text-gray-500">Vzdelávací projekt</span>

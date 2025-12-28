@@ -16,7 +16,7 @@ const Neuron = ({ neuron, onClick, isHighlighted = false, isSelected = false }: 
   const outerGlowRef = useRef<THREE.Mesh>(null);
   const activeRingRef = useRef<THREE.Mesh>(null);
   
-  // Reusable objects to avoid GC
+  // Znovupoužiteľné objekty na zabránenie GC
   const tempColor = useMemo(() => new THREE.Color(), []);
   const targetColor = useMemo(() => new THREE.Color(), []);
 
@@ -26,7 +26,7 @@ const Neuron = ({ neuron, onClick, isHighlighted = false, isSelected = false }: 
       new THREE.MeshStandardMaterial({
         color: neuron.color.clone().multiplyScalar(2.2),
         emissive: neuron.color.clone().multiplyScalar(1.8),
-        emissiveIntensity: 4.5, // boost visibility against scene lighting
+        emissiveIntensity: 4.5, // zvýšiť viditeľnosť voči osvetleniu scény
         metalness: 0.25,
         roughness: 0.15,
       }),
@@ -56,10 +56,10 @@ const Neuron = ({ neuron, onClick, isHighlighted = false, isSelected = false }: 
     // Plynulé prechody farieb bez dramatických skokov
     const baseMultiplier = 2.4 + neuron.activation * 0.9;
     
-    // Use copy instead of clone
+    // Použiť copy namiesto clone
     targetColor.copy(neuron.color).multiplyScalar(baseMultiplier);
     
-    // Flash effect for high activation (firing)
+    // Efekt záblesku pre vysokú aktiváciu (spustenie)
     if (neuron.activation > 0.7) {
         tempColor.setHex(0xffffff);
         targetColor.lerp(tempColor, (neuron.activation - 0.7) * 2.5);
@@ -86,7 +86,7 @@ const Neuron = ({ neuron, onClick, isHighlighted = false, isSelected = false }: 
 
   return (
     <group position={neuron.position}>
-      {/* Vonkajší glow - jemný - Reduced geometry */}
+      {/* Vonkajší glow - jemný - Redukovaná geometria */}
       <mesh ref={outerGlowRef}>
         <sphereGeometry args={[1, 12, 12]} />
         <meshBasicMaterial
@@ -97,7 +97,7 @@ const Neuron = ({ neuron, onClick, isHighlighted = false, isSelected = false }: 
         />
       </mesh>
 
-      {/* Vnútorný glow - príjemná žiara - Reduced geometry */}
+      {/* Vnútorný glow - príjemná žiara - Redukovaná geometria */}
       <mesh ref={glowRef}>
         <sphereGeometry args={[1, 12, 12]} />
         <meshBasicMaterial
@@ -108,12 +108,12 @@ const Neuron = ({ neuron, onClick, isHighlighted = false, isSelected = false }: 
         />
       </mesh>
 
-      {/* Hlavný neurón - Standard geometry */}
+      {/* Hlavný neurón - Štandardná geometria */}
       <mesh ref={meshRef} onClick={onClick} material={material}>
         <sphereGeometry args={[1, 16, 16]} />
       </mesh>
 
-      {/* Jemné jadro - Reduced geometry */}
+      {/* Jemné jadro - Redukovaná geometria */}
       <mesh scale={0.6}>
         <sphereGeometry args={[1, 8, 8]} />
         <meshBasicMaterial 

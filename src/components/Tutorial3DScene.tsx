@@ -6,12 +6,12 @@ import * as THREE from "three";
 type ConnectionDef = {
   start: THREE.Vector3;
   end: THREE.Vector3;
-  strength: number; // 0-1 indicating signal quality/weight
+  strength: number; // 0-1 indikujúce kvalitu/váhu signálu
   phase: number;
   color: THREE.Color;
 };
 
-// MUCH WIDER spacing between layers for better visibility
+// OVEĽA ŠIRŠIE rozostupy medzi vrstvami pre lepšiu viditeľnosť
 const LAYER_POSITIONS = {
   input: -30,
   hidden1: -10,
@@ -141,7 +141,7 @@ const OutputLayer = ({ active, step }: { active: boolean; step: number }) => {
                             metalness={0.9}
                         />
                     </Box>
-                    {/* Number label - MUCH MORE VISIBLE */}
+                    {/* Číselný štítok - OVEĽA VIDITEĽNEJŠIE */}
                     <Text 
                       position={[5, 0, 5]} 
                       fontSize={1.2} 
@@ -173,7 +173,7 @@ const OutputLayer = ({ active, step }: { active: boolean; step: number }) => {
     )
 }
 
-// Build a reusable set of connections with strengths (stronger = thicker/brighter/faster signals)
+// Vytvoriť znovupoužiteľnú sadu spojení so silou (silnejšie = hrubšie/jasnejšie/rýchlejšie signály)
 const buildConnections = () => {
   const makeColor = (hex: string, strength: number) =>
     new THREE.Color(hex).lerp(new THREE.Color("#ffffff"), 0.2 * strength);
@@ -182,7 +182,7 @@ const buildConnections = () => {
 
   const createSpan = (fromX: number, toX: number, count: number, colorHex: string, ySpread = 10, zSpread = 1): ConnectionDef[] =>
     Array.from({ length: count }).map(() => {
-      const strength = Math.max(0.15, Math.pow(Math.random(), 1.3)); // more weak links, few strong
+      const strength = Math.max(0.15, Math.pow(Math.random(), 1.3)); // viac slabých prepojení, menej silných
       return {
         start: new THREE.Vector3(fromX, jitter(ySpread), jitter(zSpread)),
         end: new THREE.Vector3(toX, jitter(ySpread), jitter(zSpread)),
@@ -199,12 +199,12 @@ const buildConnections = () => {
   ];
 };
 
-// Beautiful gradient connections with color coding and strength-aware thickness
+// Krásne gradientné spojenia s farebným kódovaním a hrúbkou podľa sily
 const NetworkConnections = ({ step, connections }: { step: number; connections: ConnectionDef[] }) => {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
-  // seed colors
+  // seedovanie farieb
   useEffect(() => {
     if (!meshRef.current || !meshRef.current.instanceColor) return;
     connections.forEach((conn, i) => {
@@ -253,7 +253,7 @@ const NetworkConnections = ({ step, connections }: { step: number; connections: 
   );
 };
 
-// Enhanced Camera Controller
+// Vylepšený ovládač kamery
 const CameraController = ({ step }: { step: number }) => {
     const { camera } = useThree();
     const targetPosRef = useRef(new THREE.Vector3(0, 0, 55));
@@ -261,23 +261,23 @@ const CameraController = ({ step }: { step: number }) => {
 
     useFrame(() => {
         switch(step) {
-          case 0: // Intro - very wide view
+          case 0: // Úvod - veľmi široký záber
             targetPosRef.current.set(0, 5, 60);
             targetLookRef.current.set(0, 0, 0);
             break;
-          case 1: // Input zoom - pull back more to see the whole grid
+          case 1: // Priblíženie vstupu - oddialiť viac, aby bola vidieť celá mriežka
             targetPosRef.current.set(LAYER_POSITIONS.input, 1, 22);
             targetLookRef.current.set(LAYER_POSITIONS.input, 0, 0);
             break;
-          case 2: // Weights - side view showing connections
+          case 2: // Váhy - bočný pohľad zobrazujúci spojenia
             targetPosRef.current.set(-20, 8, 25);
             targetLookRef.current.set(-10, 0, 0);
             break;
-          case 3: // Hidden layers
+          case 3: // Skryté vrstvy
             targetPosRef.current.set(0, 5, 28);
             targetLookRef.current.set(0, 0, 0);
             break;
-          case 4: // Output
+          case 4: // Výstup
             targetPosRef.current.set(LAYER_POSITIONS.output, 0, 18);
             targetLookRef.current.set(LAYER_POSITIONS.output, 0, 0);
             break;
@@ -295,7 +295,7 @@ const CameraController = ({ step }: { step: number }) => {
     return null;
 }
 
-// Signals traveling along connections: strong connections push brighter/faster pulses
+// Signály putujúce po spojeniach: silné spojenia tlačia jasnejšie/rýchlejšie impulzy
 const DataFlowParticles = ({ step, connections }: { step: number; connections: ConnectionDef[] }) => {
   const count = 240;
   const mesh = useRef<THREE.InstancedMesh>(null);
@@ -357,7 +357,7 @@ const DataFlowParticles = ({ step, connections }: { step: number; connections: C
   );
 };
 
-// Gradient Background Component
+// Komponent gradientného pozadia
 const GradientBackground = () => {
   return (
     <mesh position={[0, 0, -50]} scale={[200, 100, 1]}>
@@ -396,7 +396,7 @@ const Tutorial3DScene = ({ step }: { step: number }) => {
        
        <GradientBackground />
        
-       {/* Enhanced Dramatic Lighting */}
+       {/* Vylepšené dramatické osvetlenie */}
        <ambientLight intensity={0.6} />
        <pointLight position={[LAYER_POSITIONS.input, 5, 10]} intensity={3} color="#fbbf24" distance={30} />
        <pointLight position={[LAYER_POSITIONS.hidden1, 5, 10]} intensity={2.5} color="#a855f7" distance={30} />

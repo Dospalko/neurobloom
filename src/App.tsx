@@ -5,7 +5,7 @@ import LoadingScreen from "./components/LoadingScreen";
 import PageTransition from "./components/PageTransition";
 import "./styles/global.css";
 
-// Lazy load pages
+// Lenivé načítanie stránok
 const HomePage = lazy(() => import("./pages/HomePage"));
 const SimulationPage = lazy(() => import("./pages/SimulationPage"));
 const PlaygroundPage = lazy(() => import("./pages/PlaygroundPage"));

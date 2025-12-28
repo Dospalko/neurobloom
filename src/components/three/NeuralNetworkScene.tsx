@@ -9,12 +9,12 @@ import Connection from "./Connection";
 
 
 
-// Component for visualizing signal flow (particles traveling along connections)
+// Komponent pre vizualizáciu toku signálu (častice putujúce po spojeniach)
 const DataFlowParticles = ({ neurons }: { neurons: NeuronType[] }) => {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   
-  // Flatten connections but include activation context
+  // Sploštiť spojenia, ale zahrnúť kontext aktivácie
   const activeConnections = useMemo(() => {
     return neurons.flatMap(n => n.connections.map(c => ({ 
         ...c, 
@@ -30,7 +30,7 @@ const DataFlowParticles = ({ neurons }: { neurons: NeuronType[] }) => {
   // State for particles
   const particles = useMemo(() => {
      return Array.from({ length: particleCount }).map(() => ({
-         connIndex: -1, // Start unassigned
+         connIndex: -1, // Začať nepriradené
          progress: 0,
          speed: 0,
          offset: Math.random() * 10,
@@ -43,17 +43,17 @@ const DataFlowParticles = ({ neurons }: { neurons: NeuronType[] }) => {
       
       let renderedCount = 0;
       
-      // Update particles
+      // Aktualizovať častice
       for (let i = 0; i < particleCount; i++) {
           const p = particles[i];
           
-          // If inactive, try to spawn on an active connection
+          // Ak je neaktívne, skúsiť vytvoriť na aktívnom spojení
           if (!p.isActive) {
-              // Pick a random connection, but weigh heavily towards active ones?
-              // Simple approach: Pick random, check if active. If not, wait.
-              // To make it unambiguous: Only spawn if source activation > 0.1
+              // Vybrať náhodné spojenie, ale uprednostniť aktívne?
+              // Jednoduchý prístup: Vybrať náhodne, skontrolovať, či je aktívne. Ak nie, čakať.
+              // Aby to bolo jednoznačné: Vytvoriť iba ak je aktivácia zdroja > 0.1
               
-              // Try up to 5 times to find an active connection to spawn on
+              // Skúsiť až 5-krát nájsť aktívne spojenie na vytvorenie
               for(let tryCount=0; tryCount < 5; tryCount++) {
                   const idx = Math.floor(Math.random() * activeConnections.length);
                   const conn = activeConnections[idx];
@@ -61,7 +61,7 @@ const DataFlowParticles = ({ neurons }: { neurons: NeuronType[] }) => {
                   if (conn.sourceActivation > 0.1) {
                       p.connIndex = idx;
                       p.progress = 0;
-                      // Speed correlates with connection strength
+                      // Rýchlosť koreluje so silou spojenia
                       p.speed = 0.005 + Math.abs(conn.weight) * 0.015; 
                       p.isActive = true;
                       break;
@@ -73,7 +73,7 @@ const DataFlowParticles = ({ neurons }: { neurons: NeuronType[] }) => {
           if (p.isActive) {
               const conn = activeConnections[p.connIndex];
               
-              // Edge case: connection disappeared
+              // Okrajový prípad: spojenie zmizlo
               if (!conn) {
                   p.isActive = false;
                   continue;
@@ -82,22 +82,22 @@ const DataFlowParticles = ({ neurons }: { neurons: NeuronType[] }) => {
               p.progress += p.speed;
               
               if (p.progress >= 1) {
-                  p.isActive = false; // Reset
+                  p.isActive = false; // Resetovať
               } else {
-                  // Rendering
+                  // Vykresľovanie
                   const pos = new THREE.Vector3().lerpVectors(conn.start, conn.end!, p.progress);
                   dummy.position.copy(pos);
                   
-                  // Scale based on "pulse" roughly
+                  // Mierka zhruba podľa "pulzu"
                   const scale = (0.08 + Math.abs(conn.weight) * 0.1) * (1 - Math.abs(0.5 - p.progress));
                   dummy.scale.setScalar(scale);
                   
                   dummy.updateMatrix();
                   meshRef.current.setMatrixAt(renderedCount, dummy.matrix);
                   
-                  // Color: Cyan for positive, Purple for negative
+                  // Farba: Azúrová pre kladné, Fialová pre záporné
                   const color = conn.weight > 0 ? new THREE.Color("#00D4FF") : new THREE.Color("#B565FF");
-                  color.lerp(new THREE.Color("#ffffff"), 0.7); // Very bright core
+                  color.lerp(new THREE.Color("#ffffff"), 0.7); // Veľmi jasné jadro
                   
                   meshRef.current.setColorAt(renderedCount, color);
                   renderedCount++;
@@ -125,7 +125,7 @@ const DataFlowParticles = ({ neurons }: { neurons: NeuronType[] }) => {
   );
 };
 
-// Gradient pozadie component
+// Komponent gradientného pozadia
 const GradientBackground = () => {
   const { camera } = useThree();
   const planeRef = useRef<THREE.Mesh>(null);
@@ -184,13 +184,13 @@ const GradientBackground = () => {
 };
 
 type HudData = {
-  yawDisplay: number;    // -180 to 180 for readability
-  yawContinuous: number; // unwrapped to keep cube rotation smooth
+  yawDisplay: number;    // -180 až 180 pre čitateľnosť
+  yawContinuous: number; // rozbalené pre zachovanie plynulosti rotácie kocky
   pitch: number;
   distance: number;
 };
 
-// Track camera orientation/distance for HUD
+// Sledovať orientáciu/vzdialenosť kamery pre HUD
 const CameraTracker = ({ onChange }: { onChange: (data: HudData) => void }) => {
   const { camera } = useThree();
   const frame = useRef(0);
@@ -199,14 +199,14 @@ const CameraTracker = ({ onChange }: { onChange: (data: HudData) => void }) => {
 
   useFrame(() => {
     frame.current++;
-    if (frame.current % 4 !== 0) return; // throttle updates
+    if (frame.current % 4 !== 0) return; // obmedziť aktualizácie
 
     const pos = camera.position;
     const distance = pos.length();
     const yawDisplay = Math.atan2(pos.x, pos.z) * THREE.MathUtils.RAD2DEG; // -180..180
     const pitch = Math.atan2(pos.y, Math.sqrt(pos.x * pos.x + pos.z * pos.z)) * THREE.MathUtils.RAD2DEG;
 
-    // Unwrap yaw for continuous cube rotation (avoid jumps at +/-180)
+    // Rozbaliť yaw pre plynulú rotáciu kocky (vyhnúť sa skokom pri +/-180)
     let deltaYaw = yawDisplay - yawState.current.raw;
     if (deltaYaw > 180) deltaYaw -= 360;
     if (deltaYaw < -180) deltaYaw += 360;
@@ -228,7 +228,7 @@ const CameraTracker = ({ onChange }: { onChange: (data: HudData) => void }) => {
   return null;
 };
 
-// Subtle reference grid to keep orientation while orbiting/zooming
+// Jemná referenčná mriežka na udržanie orientácie pri orbite/zoome
 const ReferenceGrid = () => {
   const gridRef = useRef<THREE.Mesh>(null);
   const { camera } = useThree();
@@ -261,7 +261,7 @@ const ReferenceGrid = () => {
   );
 };
 
-// Always-visible HUD cube showing orientation (front/back/top/bottom/left/right) and camera stats
+// Vždy viditeľná HUD kocka zobrazujúca orientáciu (predná/zadná/horná/dolná/ľavá/pravá) a štatistiky kamery
 const ScreenReference = ({ hud, onReset }: { hud: HudData; onReset: () => void }) => {
   const { yawDisplay, yawContinuous, pitch, distance } = hud;
   const size = 50;
@@ -402,7 +402,7 @@ const NeuralNetworkScene = forwardRef<NeuralNetworkSceneHandle, NeuralNetworkSce
         {/* Gradient pozadie */}
         <GradientBackground />
 
-        {/* Reference grid behind the network for spatial context */}
+        {/* Referenčná mriežka za sieťou pre priestorový kontext */}
         <ReferenceGrid />
         
         {/* Jasné farebné osvetlenie */}
@@ -447,7 +447,7 @@ const NeuralNetworkScene = forwardRef<NeuralNetworkSceneHandle, NeuralNetworkSce
           <Connection key={conn.id} connection={conn} neurons={neurons} />
         ))}
         
-        {/* Signal Flow Particles */}
+        {/* Častice toku signálu */}
         <DataFlowParticles neurons={neurons} />
 
         {/* Fog pre atmosféru */}
@@ -470,7 +470,7 @@ const NeuralNetworkScene = forwardRef<NeuralNetworkSceneHandle, NeuralNetworkSce
       
       <ScreenReference hud={hudStats} onReset={resetView} />
       
-      {/* Info overlay */}
+      {/* Informačná vrstva */}
       {neurons.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="text-center space-y-3 bg-black/40 backdrop-blur-sm rounded-2xl p-8 border border-white/10">
@@ -483,7 +483,7 @@ const NeuralNetworkScene = forwardRef<NeuralNetworkSceneHandle, NeuralNetworkSce
         </div>
       )}
       
-      {/* Performance warning */}
+      {/* Varovanie o výkone */}
       {neurons.length > 100 && (
         <div className="absolute top-4 left-4 bg-yellow-500/20 border border-yellow-400 rounded-lg px-3 py-2 text-xs text-white font-mono backdrop-blur-sm">
           <span className="text-yellow-400 font-bold">WARNING:</span> High neuron count may affect performance

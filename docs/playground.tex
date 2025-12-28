@@ -1,0 +1,379 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage{hyperref}
+\geometry{margin=1in}
+\titleformat{\section}{\large\bfseries}{\thesection}{0.5em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.5em}{}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\bfseries,
+  commentstyle=\itshape,
+  breaklines=true,
+  columns=fullflexible,
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  tabsize=2,
+  showstringspaces=false
+}
+
+\title{Neurobloom Playground -- Technick\'a dokument\'acia (LaTeX)}
+\author{Codex (ChatGPT)}
+\date{2025-12-28}
+
+\begin{document}
+\maketitle
+
+\section{Meta}
+\begin{itemize}
+  \item Modul: Playground (interakt\'ivne ihrisko pre mal\'u neur\'onov\'u sieť)
+  \item Verzia: 0.1
+  \item Cieľ: Vysvetliť kompletn\'y k\'od podstr\'anky \texttt{/playground} a podpory.
+\end{itemize}
+
+\section{S\'ubory a \'ulohy}
+\begin{itemize}
+  \item \texttt{src/pages/PlaygroundPage.tsx}: Hlavn\'y kontajner, stav, tr\'eningov\'a slučka, UI.
+  \item \texttt{src/algorithms/NeuralNetwork.ts}: Triedy Node/Link/NeuralNetwork, \texttt{forward}/\texttt{backward}, \texttt{generateData}.
+  \item \texttt{src/components/three/PlaygroundScene.tsx}: 3D vizualiz\'acia siete (React Three Fiber).
+  \item \texttt{src/components/playground/Heatmap.tsx}: Rozhodovacia hranica na canvas-e.
+  \item \texttt{src/components/playground/LossChart.tsx}: Graf tr\'ening/test chyby (Recharts).
+  \item \texttt{src/components/playground/NeuronPreview.tsx}: Mini mapa aktiv\'acie neur\'onu pri hover-e.
+\end{itemize}
+
+\section{PlaygroundPage.tsx -- stav a UI}
+\subsection{Konfigur\'acia siete a d\'at}
+\begin{lstlisting}[language=TypeScript, caption={Z\'akladn\'y stav a odvodeniny}]
+const [hiddenLayers, setHiddenLayers] = useState<number[]>([4, 2]);
+const [activationFn, setActivationFn] = useState<ActivationFunction>('tanh');
+const [learningRate, setLearningRate] = useState(0.03);
+const [regularization, setRegularization] = useState<RegularizationType>('none');
+const [regRate, setRegRate] = useState(0);
+const [problem, setProblem] = useState(PROBLEMS[0]); // Klasifikacia/Regresia
+
+const [dataset, setDataset] = useState<string>(DATASETS[1].id);
+const [noise, setNoise] = useState(0);
+const [trainSplit, setTrainSplit] = useState(50);
+const [batchSize, setBatchSize] = useState(10);
+
+const [activeFeatures, setActiveFeatures] = useState<Record<FeatureId, boolean>>({
+  x: true, y: true, x2: false, y2: false, xy: false, sinx: false, siny: false
+});
+
+// Derivovan\'e hodnoty
+const inputSize = useMemo(() =>
+  Object.values(activeFeatures).filter(Boolean).length, [activeFeatures]);
+const activeFeatureLabels = useMemo(
+  () => FEATURES.filter(f => activeFeatures[f.id]).map(f => f.label),
+  [activeFeatures]
+);
+\end{lstlisting}
+
+\subsection{Inicializ\'acia siete}
+\begin{lstlisting}[language=TypeScript, caption={initNetwork -- prestavia NN pri zmene vstupov alebo hyperparametrov}]
+const networkRef = useRef<NeuralNetwork | null>(null);
+
+const initNetwork = useCallback(() => {
+  if (inputSize === 0) return;
+  const layerSizes = [inputSize, ...hiddenLayers, 1];
+  const net = new NeuralNetwork(layerSizes);
+  net.activation = activationFn;
+  net.learningRate = learningRate;
+  net.regularization = regularization;
+  net.regularizationRate = regRate;
+  networkRef.current = net;
+  setEpoch(0);
+  setLoss(0);
+  setLossHistory([]);
+}, [hiddenLayers, activationFn, learningRate, regularization, regRate, inputSize]);
+\end{lstlisting}
+
+\subsection{Generovanie d\'at}
+\begin{lstlisting}[language=TypeScript, caption={useEffect pre dataset/noise}]
+useEffect(() => {
+  const points = generateData(dataset, 200, noise);
+  setDataPoints(points);
+  initNetwork(); // reštart siete pri zmene d\'at
+}, [dataset, noise, initNetwork]);
+\end{lstlisting}
+
+\subsection{Tr\'eningov\'a slučka (requestAnimationFrame)}
+\begin{lstlisting}[language=TypeScript, caption={trainStep -- batch SGD + logovanie loss}]
+const trainStep = useCallback(() => {
+  if (!networkRef.current || !isTraining) return;
+  const net = networkRef.current;
+  const featureFuncs = FEATURES.filter(f => activeFeatures[f.id]).map(f => f.func);
+  if (featureFuncs.length === 0) return;
+
+  let totalError = 0;
+  for (let i = 0; i < batchSize; i++) {
+    const idx = Math.floor(Math.random() * dataPoints.length);
+    const point = dataPoints[idx];
+    const inputs = featureFuncs.map(fn => fn(point.x, point.y));
+    net.forward(inputs);
+    net.backward(point.label);
+    totalError += Math.abs(net.layers.at(-1)![0].output - point.label);
+  }
+
+  const currentLoss = totalError / batchSize;
+  setLoss(currentLoss);
+  setEpoch(e => {
+    const next = e + 1;
+    if (next % 5 === 0) {
+      setLossHistory(prev => [...prev, {
+        epoch: next,
+        trainLoss: currentLoss,
+        testLoss: currentLoss * (1.1 + Math.random() * 0.2)
+      }].slice(-50));
+    }
+    return next;
+  });
+  requestRef.current = requestAnimationFrame(trainStep);
+}, [isTraining, dataPoints, batchSize, activeFeatures]);
+\end{lstlisting}
+
+\subsection{UI rozvrhnutie}
+\begin{itemize}
+  \item Horn\'a li\v{s}ta: titulok, Play/Pause, reset, prep\'inanie hyperparametrov, návrat domov.
+  \item Ľav\'y panel: výber datasetu, šum, pomer train/test, batch size, prep\'inanie vstupn\'ych features.
+  \item Stred: \texttt{PlaygroundScene} (3D sieť), hover -> \texttt{NeuronPreview}.
+  \item Prav\'y panel: \texttt{LossChart} + metriky + \texttt{Heatmap}.
+\end{itemize}
+
+\section{NeuralNetwork.ts -- logika siete}
+\subsection{Triedy}
+\begin{lstlisting}[language=TypeScript, caption={Node a Link}]
+export class Node {
+  id: string;
+  bias = 0.1;
+  weights: { [nodeId: string]: number } = {};
+  output = 0;
+  totalInput = 0;
+  delta = 0; // gradient
+  constructor(id: string) { this.id = id; }
+}
+
+export class Link {
+  source: Node;
+  dest: Node;
+  weight: number = Math.random() - 0.5;
+  constructor(source: Node, dest: Node) { this.source = source; this.dest = dest; }
+}
+\end{lstlisting}
+
+\subsection{Skladanie siete a dopredn\'y pr\'ienik}
+\begin{lstlisting}[language=TypeScript, caption={Konštruktor + forward}]
+constructor(layerSizes: number[]) {
+  for (let i = 0; i < layerSizes.length; i++) {
+    const layer: Node[] = [];
+    for (let j = 0; j < layerSizes[i]; j++) {
+      const node = new Node(`${i}_${j}`);
+      layer.push(node);
+      if (i > 0) {
+        const prevLayer = this.layers[i - 1];
+        prevLayer.forEach(prevNode => {
+          const link = new Link(prevNode, node);
+          this.links.push(link);
+          node.weights[prevNode.id] = link.weight;
+        });
+      }
+    }
+    this.layers.push(layer);
+  }
+}
+
+forward(inputs: number[]): number {
+  const inputLayer = this.layers[0];
+  inputLayer.forEach((n, i) => { n.output = inputs[i]; });
+
+  for (let i = 1; i < this.layers.length; i++) {
+    const layer = this.layers[i];
+    const prevLayer = this.layers[i - 1];
+    for (const node of layer) {
+      let sum = node.bias;
+      for (const prev of prevLayer) {
+        const link = this.links.find(l => l.source === prev && l.dest === node);
+        if (link) sum += prev.output * link.weight;
+      }
+      node.totalInput = sum;
+      node.output = this.applyActivation(sum);
+    }
+  }
+  return this.layers.at(-1)![0].output;
+}
+\end{lstlisting}
+
+\subsection{Sp\"atn\'a propag\'acia a regulariz\'acia}
+\begin{lstlisting}[language=TypeScript, caption={backward -- MSE + deriv\'acie aktiv\'acie + L1/L2}]
+backward(target: number) {
+  const outputLayer = this.layers.at(-1)!;
+  const outputNode = outputLayer[0];
+  const outputDeriv = this.applyActivationDeriv(outputNode.totalInput);
+  outputNode.delta = (outputNode.output - target) * outputDeriv;
+
+  for (let i = this.layers.length - 2; i >= 0; i--) {
+    const layer = this.layers[i];
+    const nextLayer = this.layers[i + 1];
+    for (const node of layer) {
+      let errorSum = 0;
+      for (const nextNode of nextLayer) {
+        const link = this.links.find(l => l.source === node && l.dest === nextNode);
+        if (link) errorSum += nextNode.delta * link.weight;
+      }
+      node.delta = errorSum * this.applyActivationDeriv(node.totalInput);
+    }
+  }
+
+  for (const link of this.links) {
+    const gradient = link.source.output * link.dest.delta;
+    let regTerm = 0;
+    if (this.regularization === 'l1') regTerm = this.regularizationRate * (link.weight > 0 ? 1 : -1);
+    else if (this.regularization === 'l2') regTerm = this.regularizationRate * link.weight;
+    link.weight -= this.learningRate * (gradient + regTerm);
+  }
+
+  for (let i = 1; i < this.layers.length; i++) {
+    for (const node of this.layers[i]) {
+      node.bias -= this.learningRate * node.delta;
+    }
+  }
+}
+\end{lstlisting}
+
+\subsection{Generovanie syntetick\'ych d\'at}
+\begin{lstlisting}[language=TypeScript, caption={generateData -- circle/xor/gauss/spiral}]
+export const generateData = (type: string, count: number, noise: number): Point[] => {
+  const points: Point[] = [];
+  const rand = () => (Math.random() - 0.5) * 2; // -1..1
+  for (let i = 0; i < count; i++) {
+    let x = rand() * 5, y = rand() * 5, label = 0;
+    if (type === 'circle') { const dist = Math.hypot(x, y); label = dist < 2.5 ? 1 : -1; }
+    else if (type === 'xor') { label = (x > 0 && y > 0) || (x < 0 && y < 0) ? 1 : -1; }
+    else if (type === 'gauss') {
+      if (Math.random() > 0.5) { x = 2 + rand(); y = 2 + rand(); label = 1; }
+      else { x = -2 + rand(); y = -2 + rand(); label = -1; }
+    } else if (type === 'spiral') {
+      const arm = Math.random() > 0.5 ? 1 : -1;
+      const r = Math.random() * 5;
+      const t = (r / 5) * 2 * Math.PI + (arm === 1 ? 0 : Math.PI);
+      x = r * Math.cos(t); y = r * Math.sin(t); label = arm;
+    }
+    x += (Math.random() - 0.5) * (noise / 10);
+    y += (Math.random() - 0.5) * (noise / 10);
+    points.push({ x, y, label });
+  }
+  return points;
+};
+\end{lstlisting}
+
+\section{3D vizualiz\'acia -- PlaygroundScene.tsx}
+\begin{lstlisting}[language=TypeScript, caption={Poz\'icie uzlov a spojenia}]
+const nodes = useMemo<NodePos[]>(() => {
+  if (!network?.layers?.length) return [];
+  const spacingX = 4.0;
+  const layers = network.layers;
+  const maxLayerCount = Math.max(...layers.map(l => l.length));
+  const positions: NodePos[] = [];
+  layers.forEach((layer, layerIdx) => {
+    const count = layer.length;
+    const x = (layerIdx - (layers.length - 1) / 2) * spacingX;
+    for (let i = 0; i < count; i++) {
+      const y = ((i - (count - 1) / 2) / Math.max(1, maxLayerCount - 1)) * 6.0;
+      const rawLabel = layerIdx === 0 ? featureLabels[i] ?? `Input ${i+1}`
+        : layerIdx === layers.length - 1 ? `Output ${i+1}` : `H${layerIdx}-${i+1}`;
+      positions.push({ id: `${layerIdx}_${i}`, pos: new THREE.Vector3(x, y, 0), layer: layerIdx, index: i, label: rawLabel });
+    }
+  });
+  return positions;
+}, [network, featureLabels]);
+\end{lstlisting}
+
+\begin{lstlisting}[language=TypeScript, caption={Spojenia a farby podľ a v\'ahy}]
+useEffect(() => {
+  if (!network || nodes.length === 0) return;
+  const posMap = new Map(nodes.map(n => [n.id, n]));
+  const next: Connection[] = [];
+  network.links.forEach(link => {
+    const from = posMap.get(link.source.id);
+    const to = posMap.get(link.dest.id);
+    if (!from || !to) return;
+    next.push({
+      id: `${from.id}-${to.id}`,
+      from, to,
+      weight: link.weight,
+      sourceOutput: link.source.output ?? 0,
+      destOutput: link.dest.output ?? 0,
+      label: `${from.label} -> ${to.label}`
+    });
+  });
+  setConnections(next);
+}, [network, epoch, nodes]);
+\end{lstlisting}
+
+\section{Heatmap.tsx -- rozhodovacia hranica}
+\begin{lstlisting}[language=TypeScript, caption={Rasteriz\'acia rozhodovacej mapy}]
+const imageData = ctx.createImageData(width, height);
+const pixels = imageData.data;
+const scaleX = 12 / width, scaleY = 12 / height;
+const activeFuncs = featureFuncs.filter(f => activeFeatures[f.id]).map(f => f.func);
+
+for (let y = 0; y < height; y++) {
+  for (let x = 0; x < width; x++) {
+    const cx = (x * scaleX) - 6;
+    const cy = -((y * scaleY) - 6);
+    const inputs = activeFuncs.length > 0 ? activeFuncs.map(fn => fn(cx, cy)) : [cx, cy];
+    const output = network.forward(inputs);
+    const val = Math.tanh(output);
+    // mapovanie na modr\'a/oran\v{z}ov\'a + alpha
+    ...
+  }
+}
+ctx.putImageData(imageData, 0, 0);
+\end{lstlisting}
+
+\section{NeuronPreview.tsx -- detail neur\'onu}
+\begin{lstlisting}[language=TypeScript, caption={Lok\'alna heatmapa pre vybran\'y neur\'on}]
+network.forward(inputs); // aktualizuje outputs v celej sieti
+const val = network.layers[targetNode.layer][targetNode.index].output;
+const clamped = Math.max(-1, Math.min(1, val));
+// mapovanie -1..1 -> oran\v{z}ov\'a/modr\'a
+\end{lstlisting}
+
+\section{LossChart.tsx -- graf chyby}
+\begin{lstlisting}[language=TypeScript, caption={Recharts konfigur\'acia}]
+<ResponsiveContainer width="100%" height="100%">
+  <LineChart data={data}>
+    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
+    <XAxis dataKey="epoch" stroke="#ffffff50" fontSize={10}
+           tickFormatter={(v) => v % 100 === 0 ? v : ''} />
+    <YAxis stroke="#ffffff50" fontSize={10} domain={[0, 'auto']} />
+    <Tooltip ... />
+    <Line type="monotone" dataKey="trainLoss" stroke="#45a29e" dot={false} isAnimationActive={false}/>
+    <Line type="monotone" dataKey="testLoss" stroke="#ffb74a" strokeDasharray="5 5" dot={false} isAnimationActive={false}/>
+  </LineChart>
+</ResponsiveContainer>
+\end{lstlisting}
+
+\section{Tok udalost\'i}
+\begin{itemize}
+  \item Zmena datasetu alebo noise $\rightarrow$ \texttt{generateData} $\rightarrow$ \texttt{setDataPoints} $\rightarrow$ \texttt{initNetwork}.
+  \item Zmena features $\rightarrow$ zmena \texttt{inputSize} $\rightarrow$ \texttt{initNetwork}.
+  \item Play/Pause $\rightarrow$ registr\'acia/\v{s}tornovanie \texttt{requestAnimationFrame(trainStep)}.
+  \item Každ\'y \texttt{trainStep} $\rightarrow$ \texttt{forward} + \texttt{backward} $\rightarrow$ \texttt{lossHistory} (každ\'ych 5 epoch) $\rightarrow$ re-render 3D/Heatmap.
+  \item Hover v 3D $\rightarrow$ \texttt{onNodeHover} $\rightarrow$ zobraz\'enie \texttt{NeuronPreview}.
+\end{itemize}
+
+\section{Pozn\'amky}
+\begin{itemize}
+  \item Rozsah vstupu v heatmape je -6..6; pri zmene gener\'atora d\'at upraviť \texttt{scaleX/scaleY}.
+  \item Ak prid\'avate features, roz\v{s}irte \texttt{FEATURES} v \texttt{PlaygroundPage.tsx} a nechajte \texttt{inputSize} odvodiť stav siete.
+  \item Regulariz\'acia (L1/L2) je implementovan\'a priamo v update v\'ah; ďalšie techniky (momentum, dropout) by vyžadovali \'upln\'u \'upravu \texttt{NeuralNetwork}.
+\end{itemize}
+
+\end{document}

@@ -14,7 +14,7 @@ export const HandTracker: React.FC<HandTrackerProps> = ({ onTensionChange, onHan
   const requestRef = useRef<number>();
   const handLandmarkerRef = useRef<HandLandmarker | null>(null);
   
-  // For velocity calculation
+  // Pre výpočet rýchlosti
   const lastPositionRef = useRef<{x: number, y: number} | null>(null);
   const lastTimeRef = useRef<number>(0);
 
@@ -73,7 +73,7 @@ export const HandTracker: React.FC<HandTrackerProps> = ({ onTensionChange, onHan
     if (!handLandmarkerRef.current || !videoRef.current) return;
 
     const currentTime = performance.now();
-    // Throttle prediction to ~30fps (33ms) to save CPU
+    // Obmedziť predikciu na ~30fps (33ms) pre úsporu CPU
     if (currentTime - lastTimeRef.current < 33) {
         requestRef.current = requestAnimationFrame(predictWebcam);
         return;
@@ -89,7 +89,7 @@ export const HandTracker: React.FC<HandTrackerProps> = ({ onTensionChange, onHan
         let avgY = 0;
         
         results.landmarks.forEach(landmarks => {
-            // Tension Logic
+            // Logika napätia
             const wrist = landmarks[0];
             const tips = [4, 8, 12, 16, 20];
             
@@ -112,8 +112,8 @@ export const HandTracker: React.FC<HandTrackerProps> = ({ onTensionChange, onHan
             handTension = Math.max(0, Math.min(1, handTension));
             totalTension += handTension;
 
-            // Position Logic (Centroid of wrist + middle finger knuckle + middle finger tip)
-            // Using wrist (0) and middle finger mcp (9) is usually stable
+            // Logika pozície (Ťažisko zápästia + kĺbu prostredníka + špičky prostredníka)
+            // Použitie zápästia (0) a mcp prostredníka (9) je zvyčajne stabilné
             avgX += landmarks[9].x;
             avgY += landmarks[9].y;
         });
@@ -123,16 +123,16 @@ export const HandTracker: React.FC<HandTrackerProps> = ({ onTensionChange, onHan
         avgX /= handCount;
         avgY /= handCount;
 
-        // Invert X because webcam is mirrored
+        // Invertovať X, pretože webkamera je zrkadlená
         const finalX = 1 - avgX; 
-        const finalY = avgY; // 0 is top, 1 is bottom
+        const finalY = avgY; // 0 je hore, 1 je dole
 
-        // Velocity Calculation
+        // Výpočet rýchlosti
         let velocity = 0;
         if (lastPositionRef.current) {
             const dx = finalX - lastPositionRef.current.x;
             const dy = finalY - lastPositionRef.current.y;
-            const dt = (currentTime - lastTimeRef.current) / 1000; // seconds
+            const dt = (currentTime - lastTimeRef.current) / 1000; // sekundy
             if (dt > 0) {
                 const speed = Math.sqrt(dx*dx + dy*dy) / dt;
                 velocity = speed;
@@ -147,7 +147,7 @@ export const HandTracker: React.FC<HandTrackerProps> = ({ onTensionChange, onHan
 
       } else {
           onTensionChange(0);
-          // Decay velocity if no hand found?
+          // Znížiť rýchlosť, ak sa nenájde ruka?
           onHandMove(0.5, 0.5, 0); 
       }
     }
@@ -162,7 +162,7 @@ export const HandTracker: React.FC<HandTrackerProps> = ({ onTensionChange, onHan
         ref={videoRef} 
         autoPlay 
         playsInline 
-        className="w-full h-full object-cover transform -scale-x-100" // Mirror effect
+        className="w-full h-full object-cover transform -scale-x-100" // Zrkadlový efekt
       />
     </div>
   );

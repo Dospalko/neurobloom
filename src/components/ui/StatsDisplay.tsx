@@ -31,7 +31,7 @@ const StatsDisplay = ({ stats }: StatsDisplayProps) => {
         </div>
       </div>
       
-      {/* Progress bars */}
+      {/* Ukazovatele priebehu */}
       <div className="space-y-2.5 pt-1">
         <div>
           <div className="flex justify-between text-[10px] text-gray-400 mb-1">

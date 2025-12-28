@@ -15,33 +15,33 @@ const ParticleSystemPage: React.FC = () => {
   const [handVelocity, setHandVelocity] = useState(0);
   const [triggerCommand, setTriggerCommand] = useState<string | null>(null);
   
-  // Interaction Mode State
+  // Stav režimu interakcie
   const [interactionMode, setInteractionMode] = useState<InteractionMode>('camera');
 
   const handleTensionChange = useCallback((newTension: number) => {
-    // Only update tension if camera is allowed
+    // Aktualizovať napätie iba ak je povolená kamera
     if (interactionMode === 'camera') {
         setTension(newTension);
     }
   }, [interactionMode]);
 
   const handleHandMove = useCallback((x: number, y: number, velocity: number) => {
-      // Only update positions if camera is allowed
+      // Aktualizovať pozície iba ak je povolená kamera
       if (interactionMode === 'camera') {
           setHandPos({ x, y });
           setHandVelocity(velocity);
       } else {
-          // If disabled, just kill velocity to prevent interactions, but keep position or let it settle
+          // Ak je vypnuté, len zrušiť rýchlosť pre zabránenie interakciám, ale ponechať pozíciu alebo nechať ustáliť
           setHandVelocity(0);
       }
   }, [interactionMode]);
 
   const handleVoiceCommand = useCallback((command: string) => {
-    // Only process voice if voice is allowed
+    // Spracovať hlas iba ak je povolený
     if (interactionMode === 'voice') {
         setTriggerCommand(command);
         
-        // Clear trigger after a short delay so it can be re-triggered
+        // Vyčistiť spúšťač po krátkom oneskorení, aby sa mohol znova spustiť
         setTimeout(() => setTriggerCommand(null), 1500);
           
         if (command === 'reset') {
@@ -52,7 +52,7 @@ const ParticleSystemPage: React.FC = () => {
 
   return (
     <div className="relative w-full h-screen bg-black overflow-hidden">
-      {/* 3D Canvas Layer */}
+      {/* Vrstva 3D plátna */}
       <div className="absolute inset-0 z-0">
         <ParticleCanvas 
             tension={tension} 
@@ -64,16 +64,16 @@ const ParticleSystemPage: React.FC = () => {
         />
       </div>
 
-      {/* UI Layer */}
+      {/* Vrstva UI */}
       <div className="absolute inset-0 z-10 pointer-events-none">
         
-        {/* Helper text for mode */}
+        {/* Pomocný text pre režim */}
         <div className="absolute top-24 left-1/2 transform -translate-x-1/2 text-white/30 text-xs font-mono tracking-widest uppercase pointer-events-none">
              {interactionMode === 'camera' && "Ovládanie gestami rúk"}
              {interactionMode === 'voice' && "Ovládanie hlasom"}
         </div>
         
-        {/* Visual Cursor (Only visible if camera interaction is active) */}
+        {/* Vizuálny kurzor (viditeľný iba ak je aktívna interakcia kamerou) */}
         {(interactionMode === 'camera') && (
             <div 
                 className="absolute w-6 h-6 rounded-full border-2 border-red-500 bg-red-500/30 transform -translate-x-1/2 -translate-y-1/2 transition-transform duration-75"
@@ -87,20 +87,20 @@ const ParticleSystemPage: React.FC = () => {
 
         <div className="w-full h-full relative">
           
-          {/* Mode Selector - Top Center */}
+          {/* Výber režimu - Hore v strede */}
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 pointer-events-auto">
              <InteractionModeSelector mode={interactionMode} onChange={setInteractionMode} />
           </div>
 
-          {/* Voice Tracker - Top Right (Visible if active) */}
+          {/* Sledovanie hlasu - Vpravo hore (viditeľné ak je aktívne) */}
           {(interactionMode === 'voice') && (
                <VoiceTracker onCommand={handleVoiceCommand} />
           )}
 
-          {/* Hand Tracker (Always visible for feed, but interactive logic is gated) */}
+          {/* Sledovanie rúk (vždy viditeľné pre náhľad, ale interaktívna logika je obmedzená) */}
           <div className="absolute top-4 right-4 w-48 h-36 bg-gray-900 rounded-lg overflow-hidden border border-gray-700 pointer-events-auto transition-opacity shadow-lg shadow-black/50">
              <HandTracker onTensionChange={handleTensionChange} onHandMove={handleHandMove} />
-             {/* Overlay to indicate it's just a view when disabled */}
+             {/* Prekrytie indikujúce iba zobrazenie, keď je vypnuté */}
              {interactionMode === 'voice' && (
                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px]">
                      <span className="text-xs text-white/50 font-medium">Sledovanie vypnuté</span>

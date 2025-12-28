@@ -9,7 +9,7 @@ export const VoiceTracker: React.FC<VoiceTrackerProps> = ({ onCommand }) => {
   const [transcript, setTranscript] = useState('');
 
   useEffect(() => {
-    // Check for browser support
+    // Skontrolovať podporu prehliadača
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
@@ -27,9 +27,9 @@ export const VoiceTracker: React.FC<VoiceTrackerProps> = ({ onCommand }) => {
     };
 
     recognition.onend = () => {
-      // Auto-restart if it stops unexpected
+      // Automatický reštart, ak sa neočakávane zastaví
       setIsListening(false);
-      // Optional: recognition.start(); // Be careful with loops
+      // Voliteľné: recognition.start(); // Pozor na slučky
     };
 
     recognition.onresult = (event: any) => {
@@ -67,7 +67,7 @@ export const VoiceTracker: React.FC<VoiceTrackerProps> = ({ onCommand }) => {
 
   return (
     <div className="absolute top-4 right-4 z-50 pointer-events-none">
-       {/* Visual Feedback for Voice */}
+       {/* Vizuálna odozva pre hlas */}
        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-300 ${isListening ? 'bg-red-500/20 border border-red-500/50' : 'bg-gray-800/50 border border-gray-700'}`}>
           <div className={`w-2 h-2 rounded-full ${isListening ? 'bg-red-500 animate-pulse' : 'bg-gray-500'}`} />
           <span className="text-xs font-mono text-gray-300 uppercase tracking-wider">

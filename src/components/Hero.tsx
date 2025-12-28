@@ -1,7 +1,7 @@
 const Hero = () => {
   return (
     <header className="relative px-6 py-20 md:py-32 text-center overflow-hidden">
-      {/* Background gradient overlay */}
+      {/* Prekrytie gradientom pozadia */}
       <div className="absolute inset-0 bg-gradient-to-b from-neuro-purple/10 via-transparent to-transparent pointer-events-none" />
       
       <div className="relative z-10 max-w-5xl mx-auto">
@@ -36,7 +36,7 @@ const Hero = () => {
         </div>
       </div>
       
-      {/* Decorative elements */}
+      {/* Dekoratívne prvky */}
       <div className="absolute top-20 left-10 w-2 h-2 bg-neuro-cyan rounded-full animate-pulse-slow" />
       <div className="absolute top-40 right-20 w-3 h-3 bg-neuro-purple rounded-full animate-pulse-slow delay-75" />
       <div className="absolute bottom-20 left-1/4 w-2 h-2 bg-neuro-pink rounded-full animate-pulse-slow delay-150" />

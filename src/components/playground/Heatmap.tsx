@@ -21,52 +21,52 @@ const Heatmap: React.FC<HeatmapProps> = ({ network, data, width = 300, height = 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // 1. Draw Decision Boundary (Heatmap)
+    // 1. Vykresliť hranicu rozhodovania (Teplotná mapa)
     const imageData = ctx.createImageData(width, height);
     const pixels = imageData.data;
     
-    // Scale: -6 to 6
+    // Škála: -6 až 6
     const scaleX = 12 / width;
     const scaleY = 12 / height;
 
-    // Filter active functions once
+    // Filtrovať aktívne funkcie raz
     const activeFuncs = featureFuncs.filter(f => activeFeatures[f.id]).map(f => f.func);
 
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
-        // Map pixel to coordinate
+        // Mapovať pixel na súradnicu
         const cx = (x * scaleX) - 6;
-        const cy = -((y * scaleY) - 6); // Invert Y for standard cartesian
+        const cy = -((y * scaleY) - 6); // Invertovať Y pre štandardný kartézsky systém
 
         // Transform input based on features
         const inputs = activeFuncs.length > 0 
             ? activeFuncs.map(fn => fn(cx, cy))
-            : [cx, cy]; // Fallback if no features (shouldn't happen if logic is correct)
+            : [cx, cy]; // Záloha ak nie sú žiadne vlastnosti (nemalo by sa stať pri správnej logike)
 
         const output = network.forward(inputs);
 
         const idx = (y * width + x) * 4;
         
-        // Color map: -1 (Orange) to 1 (Blue)
+        // Mapa farieb: -1 (Oranžová) do 1 (Modrá)
         const val = Math.tanh(output); 
         
         let r, g, b;
         if (val < 0) {
-            // Orange: #ff9900 (Bright Orange)
-            // White: 255, 255, 255
+            // Oranžová: #ff9900 (Jasná oranžová)
+            // Biela: 255, 255, 255
             const intensity = Math.abs(val);
-            // Interpolate between White and Bright Orange
-            // Actually, usually it's better to go from a neutral background to the color
-            // But TF Playground goes from White (at 0) to Color (at +/-1)
-            // Let's make it punchier.
+            // Interpolovať medzi Bielou a Jasnou oranžovou
+            // Vlastne, zvyčajne je lepšie ísť z neutrálneho pozadia do farby
+            // Ale TF Playground ide z Bielej (pri 0) do Farby (pri +/-1)
+            // Spravme to výraznejšie.
             
-            // Target: 255, 153, 0 (#ff9900)
+            // Cieľ: 255, 153, 0 (#ff9900)
             r = 255;
             g = 255 + (153 - 255) * intensity;
             b = 255 + (0 - 255) * intensity;
         } else {
-            // Blue: #00ccff (Neon Cyan)
-            // Target: 0, 204, 255 (#00ccff)
+            // Modrá: #00ccff (Neon Azúrová)
+            // Cieľ: 0, 204, 255 (#00ccff)
             const intensity = Math.abs(val);
             r = 255 + (0 - 255) * intensity;
             g = 255 + (204 - 255) * intensity;
@@ -76,25 +76,25 @@ const Heatmap: React.FC<HeatmapProps> = ({ network, data, width = 300, height = 
         pixels[idx] = r;
         pixels[idx + 1] = g;
         pixels[idx + 2] = b;
-        // Increase alpha for better visibility
+        // Zvýšiť alfu pre lepšiu viditeľnosť
         pixels[idx + 3] = 180 + Math.abs(val) * 75; 
       }
     }
     ctx.putImageData(imageData, 0, 0);
 
-    // 2. Draw Data Points
+    // 2. Vykresliť dátové body
     data.forEach(p => {
         const px = (p.x + 6) / scaleX;
         const py = (-p.y + 6) / scaleY;
 
         ctx.beginPath();
         ctx.arc(px, py, 6, 0, Math.PI * 2);
-        // Stroke for contrast
+        // Obrys pre kontrast
         ctx.strokeStyle = 'white';
         ctx.lineWidth = 2.5;
         ctx.stroke();
         
-        // Fill
+        // Výplň
         ctx.fillStyle = p.label > 0 ? '#00ccff' : '#ff9900';
         ctx.fill();
     });

@@ -1,0 +1,648 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage{hyperref}
+\geometry{margin=1in}
+\titleformat{\section}{\large\bfseries}{\thesection}{0.5em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.5em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries}{\thesubsubsection}{0.5em}{}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\bfseries,
+  commentstyle=\itshape,
+  breaklines=true,
+  columns=fullflexible,
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  tabsize=2,
+  showstringspaces=false
+}
+
+\title{Neurobloom Simulation -- Technická dokumentácia (LaTeX)}
+\author{Codex (ChatGPT)}
+\date{2025-12-28}
+
+\begin{document}
+\maketitle
+
+\section{Meta}
+\begin{itemize}
+  \item Modul: Simulation (interaktívna simulácia neurónov)
+  \item Verzia: 0.1
+  \item Rozsah: \texttt{SimulationPage} + UI panely + 3D scéna + simulačné funkcie + algoritmy
+\end{itemize}
+
+\section{Prehľad architektúry}
+Simulation stránka spája 3D vizualizáciu siete, UI panely pre ovládanie a
+``živú'' simulačnú logiku. Hlavné vrstvy:
+\begin{itemize}
+  \item \texttt{src/pages/SimulationPage.tsx} -- layout, navigácia a prepojenie panelov.
+  \item \texttt{src/hooks/useNeuralNetwork.ts} -- stav siete, tréning, algoritmy a štatistiky.
+  \item \texttt{src/components/three/NeuralNetworkScene.tsx} + \texttt{Neuron.tsx}, \texttt{Connection.tsx} -- 3D scéna.
+  \item \texttt{src/components/ui/*} -- ovládacie panely, štatistiky, overlay.
+  \item \texttt{src/simulation/*} + \texttt{src/algorithms/*} -- dátové typy a algoritmy.
+\end{itemize}
+
+\section{SimulationPage (src/pages/SimulationPage.tsx)}
+
+\subsection{Členenie zdrojového textu a odporúčané komentovanie}
+\paragraph{Hlavička súboru}
+\begin{lstlisting}[language=JavaScript, caption={Odporúčaná hlavička súboru \texttt{SimulationPage.tsx}}, label={lst:sim-header}]
+/*
+============================================================
+Autor:        <Meno autora / tím>
+Dátum:        2025-12-28
+Verzia:       1.0
+Súbor:        src/pages/SimulationPage.tsx
+Názov:        SimulationPage
+Popis:        Hlavná stránka simulácie neurónov.
+              Spája 3D scénu, UI panely a simulačný hook.
+============================================================
+*/
+\end{lstlisting}
+
+\subsection{Napojenie na hook a správa stavu}
+\paragraph{Funkcia}
+Stránka získava všetky potrebné callbacky a stav z \texttt{useNeuralNetwork}.
+Lokálne si udržiava \texttt{selectedNeuronId} pre výber neurónu v 3D scéne.
+
+\begin{lstlisting}[language=TypeScript, caption={Napojenie na \texttt{useNeuralNetwork}}, label={lst:sim-hook}]
+const [selectedNeuronId, setSelectedNeuronId] = useState<string | null>(null);
+const sceneRef = useRef<NeuralNetworkSceneHandle>(null);
+
+const {
+  neurons, mode, stats, addNeuron, addMultipleNeurons,
+  startTraining, stopTraining, resetNetwork, initializeNetwork,
+  runAlgorithm, stopAlgorithm, isAlgorithmRunning,
+  currentAlgorithm, algorithmProgress, neuronsCreated,
+  activationFocus, currentPattern, currentProcessingNeuron,
+  algorithmSpeed, setAlgorithmSpeed,
+} = useNeuralNetwork();
+\end{lstlisting}
+
+\subsection{Inicializácia siete}
+\paragraph{Funkcia}
+Pri prvom renderi, ak sieť neobsahuje žiadne neuróny, zavolá sa
+\texttt{initializeNetwork} (vytvorí sa jeden vstupný neurón).
+
+\begin{lstlisting}[language=TypeScript, caption={Inicializácia siete}, label={lst:sim-init}]
+useEffect(() => {
+  if (neurons.length === 0) {
+    initializeNetwork();
+  }
+}, [neurons.length, initializeNetwork]);
+\end{lstlisting}
+
+\subsection{Ošetrenie výberu neurónu}
+\paragraph{Funkcia}
+Ak zvolený neurón už neexistuje (napr. po resete), výber sa zruší.
+
+\begin{lstlisting}[language=TypeScript, caption={Kontrola platnosti \texttt{selectedNeuronId}}, label={lst:sim-selection}]
+useEffect(() => {
+  if (selectedNeuronId && !neurons.find((n) => n.id === selectedNeuronId)) {
+    setSelectedNeuronId(null);
+  }
+}, [neurons, selectedNeuronId]);
+\end{lstlisting}
+
+\subsection{Rozloženie UI}
+\paragraph{Funkcia}
+Hlavný layout používa tri stĺpce: ľavý (algoritmy + ovládanie), stredný
+(3D scéna + overlay), pravý (štatistiky + referencie neurónov).
+
+\begin{lstlisting}[language=TypeScript, caption={Rozloženie panelov}, label={lst:sim-layout}]
+<div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_260px] gap-4">
+  <div className="panel p-4 space-y-4">
+    <AlgorithmPanel ... />
+    <ControlPanel ... />
+  </div>
+
+  <div className="h-full panel overflow-hidden relative">
+    <NeuralNetworkScene ... />
+    <AlgorithmInfoOverlay ... />
+  </div>
+
+  <div className="space-y-4">
+    <div className="panel p-4 space-y-4">
+      <StatsDisplay stats={stats} />
+      <NeuronReferencePanel ... />
+    </div>
+  </div>
+</div>
+\end{lstlisting}
+
+\section{Hook useNeuralNetwork (src/hooks/useNeuralNetwork.ts)}
+
+\subsection{Členenie a odporúčané komentovanie}
+\paragraph{Hlavička súboru}
+\begin{lstlisting}[language=JavaScript, caption={Odporúčaná hlavička \texttt{useNeuralNetwork.ts}}, label={lst:hook-header}]
+/*
+============================================================
+Autor:        <Meno autora / tím>
+Dátum:        2025-12-28
+Verzia:       1.0
+Súbor:        src/hooks/useNeuralNetwork.ts
+Názov:        useNeuralNetwork
+Popis:        React hook pre stav siete, tréning, algoritmy a štatistiky.
+============================================================
+*/
+\end{lstlisting}
+
+\subsection{Základný stav siete}
+\paragraph{Funkcia}
+Hook drží pole neurónov, režim simulácie a štatistiky siete.
+\begin{lstlisting}[language=TypeScript, caption={Stav siete}, label={lst:hook-state}]
+const [neurons, setNeurons] = useState<Neuron[]>([]);
+const [mode, setMode] = useState<SimulationMode>("idle");
+const [stats, setStats] = useState<NetworkStats>({
+  totalNeurons: 0,
+  totalConnections: 0,
+  averageActivation: 0,
+  averageHealth: 1,
+  trainingEpochs: 0,
+  accuracy: 0,
+  isOverfitted: false,
+  isUnderfitted: false,
+});
+\end{lstlisting}
+
+\subsection{Pridávanie neurónov a prepojení}
+\paragraph{Funkcia}
+\texttt{addNeuron} vytvorí nový neurón v náhodnej pozícii a spojí ho
+s niekoľkými existujúcimi neurónmi.
+
+\begin{lstlisting}[language=TypeScript, caption={Pridanie neurónu}, label={lst:hook-add-neuron}]
+const addNeuron = useCallback((type: "input" | "hidden" | "output" = "hidden") => {
+  const position = randomSpherePosition(3 + neurons.length * 0.05);
+  const newNeuron = createNeuron(position, type);
+  const connections: Connection[] = [];
+  const numConnections = Math.min(2, neurons.length);
+  for (let i = 0; i < numConnections; i++) {
+    const randomNeuron = neurons[Math.floor(Math.random() * neurons.length)];
+    if (randomNeuron) connections.push(createConnection(randomNeuron.id, newNeuron.id));
+  }
+  newNeuron.connections = connections;
+  setNeurons((prev) => [...prev, newNeuron]);
+}, [neurons]);
+\end{lstlisting}
+
+\subsection{Tréningová slučka}
+\paragraph{Funkcia}
+Tréning beží cez \texttt{setInterval} (400 ms). Strieda dva vstupné vzory,
+aktivuje neuróny, aktualizuje váhy Hebbovým pravidlom a vypočítava štatistiky.
+
+\begin{lstlisting}[language=TypeScript, caption={Spustenie tréningu}, label={lst:hook-training}]
+const startTraining = useCallback(() => {
+  setMode("training");
+  if (trainingInterval.current) clearInterval(trainingInterval.current);
+  let tick = 0;
+  trainingInterval.current = setInterval(() => {
+    tick++;
+    const patternPhase = Math.floor(tick / 20) % 2;
+    const patternName = patternPhase === 0 ? "Pattern A (Even Inputs)" : "Pattern B (Odd Inputs)";
+    setCurrentPattern(prev => prev !== patternName ? patternName : prev);
+
+    setNeurons((prev) => {
+      // 1) aktualizuj vstupy
+      // 2) aktivuj skryté/výstupné neuróny
+      // 3) uprav váhy spojení
+      return [...updatedInputs, ...updatedHiddenOutput];
+    });
+  }, 400);
+}, []);
+\end{lstlisting}
+
+\subsection{Algoritmy (AlgorithmRunner)}
+\paragraph{Funkcia}
+\texttt{runAlgorithm} pripraví minimálny počet neurónov (40), postupne ich
+pridáva do sféry a potom spúšťa algoritmus v \texttt{AlgorithmRunner}.
+
+\begin{lstlisting}[language=TypeScript, caption={Spustenie algoritmu}, label={lst:hook-run-algorithm}]
+const runAlgorithm = useCallback((algorithmType: AlgorithmType) => {
+  setMode("idle");
+  if (trainingInterval.current) clearInterval(trainingInterval.current);
+
+  setIsAlgorithmRunning(true);
+  setCurrentAlgorithm(algorithmType);
+  setAlgorithmProgress(0);
+  setNeuronsCreated(0);
+  setIsStatsLocked(true);
+
+  const minNeurons = 40;
+  if (neurons.length < minNeurons) {
+    // postupné pridávanie neurónov + prepojenia
+  } else {
+    if (!algorithmRunner.current) algorithmRunner.current = new AlgorithmRunner(neurons);
+    algorithmRunner.current.start(algorithmType);
+  }
+}, [neurons]);
+\end{lstlisting}
+
+\subsection{Štatistiky a fokus}
+\paragraph{Funkcia}
+Štatistiky (počet neurónov, priemerné aktivácie, zdravie) sa počítajú
+len ak nie sú zamknuté alebo ak beží algoritmus. Fokus vyberá neurón
+s najvyššou aktiváciou pre UI panel.
+
+\begin{lstlisting}[language=TypeScript, caption={Výpočet štatistík + live focus}, label={lst:hook-stats}]
+useEffect(() => {
+  if (neurons.length > 0 && (!isStatsLocked || isAlgorithmRunning)) {
+    const totalConnections = neurons.reduce((sum, n) => sum + n.connections.length, 0);
+    const avgActivation = neurons.reduce((sum, n) => sum + n.activation, 0) / neurons.length;
+    const avgHealth = neurons.reduce((sum, n) => sum + n.health, 0) / neurons.length;
+    setStats((prev) => ({ ...prev, totalNeurons: neurons.length, totalConnections, averageActivation: avgActivation, averageHealth: avgHealth }));
+  }
+}, [neurons, isStatsLocked, isAlgorithmRunning]);
+\end{lstlisting}
+
+\section{Simulačné dátové typy a funkcie}
+
+\subsection{Dátové typy (src/simulation/types.ts)}
+\paragraph{Funkcia}
+Typy definujú neurón, spojenie a štatistiky siete. Typ \texttt{SimulationMode}
+určuje režim (idle, training, inference, degrading).
+
+\begin{lstlisting}[language=TypeScript, caption={Typy neurónu a spojenia}, label={lst:sim-types}]
+export interface Neuron {
+  id: string;
+  position: THREE.Vector3;
+  activation: number; // 0-1
+  age: number;
+  connections: Connection[];
+  learningRate: number;
+  health: number;
+  trainingCount: number;
+  type: "input" | "hidden" | "output";
+  color: THREE.Color;
+}
+
+export interface Connection {
+  id: string;
+  from: string;
+  to: string;
+  weight: number; // -1..1
+  strength: number; // 0..1
+  age: number;
+  lastActivation: number;
+}
+\end{lstlisting}
+
+\subsection{Simulačné funkcie (src/simulation/neuralNetwork.ts)}
+\paragraph{Funkcia}
+Súbor obsahuje tvorbu neurónov/spojení, aktivačné funkcie a pravidlá učenia.
+
+\begin{lstlisting}[language=TypeScript, caption={Vytvorenie neurónu + spojenia}, label={lst:sim-create}]
+export const createNeuron = (position: THREE.Vector3, type: "input" | "hidden" | "output" = "hidden"): Neuron => {
+  const colorMap = {
+    input: new THREE.Color("#00D4FF"),
+    hidden: new THREE.Color("#B565FF"),
+    output: new THREE.Color("#00FF88"),
+  };
+  return {
+    id: `neuron_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    position: position.clone(),
+    activation: 0,
+    age: 0,
+    connections: [],
+    learningRate: 0.1,
+    health: 1.0,
+    trainingCount: 0,
+    type,
+    color: colorMap[type],
+  };
+};
+\end{lstlisting}
+
+\begin{lstlisting}[language=TypeScript, caption={Aktivácia neurónu}, label={lst:sim-activate}]
+export const activateNeuron = (neuron: Neuron, inputs: Map<string, number>): number => {
+  let sum = 0;
+  neuron.connections.forEach((conn) => {
+    const inputValue = inputs.get(conn.from) || 0;
+    sum += inputValue * conn.weight;
+  });
+  return sigmoid(sum);
+};
+\end{lstlisting}
+
+\begin{lstlisting}[language=TypeScript, caption={Hebb/Oja pravidlo pre úpravu váh}, label={lst:sim-hebb}]
+export const updateConnectionWeight = (
+  connection: Connection,
+  sourceActivation: number,
+  targetActivation: number,
+  learningRate: number
+): number => {
+  const hebbianTerm = sourceActivation * targetActivation;
+  const decayTerm = 0.05 * connection.weight * targetActivation * targetActivation;
+  const delta = learningRate * (hebbianTerm - decayTerm);
+  const newWeight = connection.weight + delta;
+  return Math.max(-1, Math.min(1, newWeight));
+};
+\end{lstlisting}
+
+\begin{lstlisting}[language=TypeScript, caption={Zdravie neurónu a detekcia problémov}, label={lst:sim-health}]
+export const calculateNeuronHealth = (neuron: Neuron): number => {
+  const ageDecay = Math.max(0, 1 - neuron.age / 300);
+  const overtrainingPenalty = Math.max(0, 1 - neuron.trainingCount / 10000);
+  return Math.min(1, (ageDecay + overtrainingPenalty) / 2 * neuron.health);
+};
+
+export const detectTrainingIssues = (trainingAccuracy: number, validationAccuracy: number, epochs: number) => {
+  const gap = trainingAccuracy - validationAccuracy;
+  return {
+    isOverfitted: gap > 0.15 && epochs > 100,
+    isUnderfitted: trainingAccuracy < 0.7 && epochs > 50,
+  };
+};
+\end{lstlisting}
+
+\subsection{Re-exporty (src/simulation/index.ts)}
+\paragraph{Funkcia}
+Súbor zjednodušuje importy tým, že re-exportuje typy a funkcie.
+
+\begin{lstlisting}[language=TypeScript, caption={Re-export simulácie}, label={lst:sim-index}]
+export * from "./types";
+export * from "./neuralNetwork";
+\end{lstlisting}
+
+\section{Algoritmy vizualizácie}
+
+\subsection{Definície algoritmov (src/algorithms/types.ts)}
+\paragraph{Funkcia}
+Definície obsahujú ID algoritmu, názov, popis, trvanie a farbu.
+
+\begin{lstlisting}[language=TypeScript, caption={ALGORITHMS -- metadáta}, label={lst:algorithms-types}]
+export type AlgorithmType =
+  | 'wave-propagation'
+  | 'spiral-growth'
+  | 'cascade-activation'
+  | 'pulse-network'
+  | 'random-walker';
+
+export const ALGORITHMS: Algorithm[] = [
+  { id: 'wave-propagation', name: 'Wave Propagation', duration: 9, color: '#00D4FF', ... },
+  { id: 'spiral-growth', name: 'Spiral Growth', duration: 11, color: '#B565FF', ... },
+  ...
+];
+\end{lstlisting}
+
+\subsection{AlgorithmRunner (src/algorithms/algorithmRunner.ts)}
+\paragraph{Funkcia}
+Trieda riadi farebné a aktivačné animácie. Drží pôvodné farby neurónov,
+spúšťa algoritmy a poskytuje odkaz na ``aktuálne spracovávaný'' neurón.
+
+\begin{lstlisting}[language=TypeScript, caption={Lifecycle algoritmu}, label={lst:algorithm-runner}]
+start(algorithmType: AlgorithmType) {
+  this.currentAlgorithm = algorithmType;
+  this.startTime = Date.now();
+  this.isRunning = true;
+  this.originalColors.clear();
+  this.neurons.forEach(neuron => {
+    this.originalColors.set(neuron.id, neuron.color.clone());
+  });
+}
+
+stop() {
+  this.isRunning = false;
+  this.currentAlgorithm = null;
+  this.neurons.forEach(neuron => {
+    neuron.activation = 0;
+    const originalColor = this.originalColors.get(neuron.id);
+    if (originalColor) neuron.color.copy(originalColor);
+  });
+  this.originalColors.clear();
+}
+\end{lstlisting}
+
+\paragraph{Prehľad algoritmov}
+\begin{itemize}
+  \item \texttt{wave-propagation} -- radiálna vlna aktivácie od stredu, neuróny sa sfarbujú do modrej.
+  \item \texttt{spiral-growth} -- rotujúci špirálový vzor, plynulé farebné prechody.
+  \item \texttt{cascade-activation} -- postupná aktivácia neurónov zoradených podľa pozície.
+  \item \texttt{pulse-network} -- globálny pulz siete s rytmickým prechodom farieb.
+  \item \texttt{random-walker} -- náhodný ``skokan'' aktivuje lokálne okolie.
+\end{itemize}
+
+\section{3D vizualizácia simulácie}
+
+\subsection{NeuralNetworkScene (src/components/three/NeuralNetworkScene.tsx)}
+\paragraph{Funkcia}
+Hlavný 3D komponent vytvára scénu, osvetlenie, pozadie, spája neuróny,
+vykresľuje spojenia a častice toku dát. Podporuje reset kamery.
+
+\paragraph{Hlavička súboru}
+\begin{lstlisting}[language=JavaScript, caption={Odporúčaná hlavička \texttt{NeuralNetworkScene.tsx}}, label={lst:scene-header}]
+/*
+============================================================
+Autor:        <Meno autora / tím>
+Dátum:        2025-12-28
+Verzia:       1.0
+Súbor:        src/components/three/NeuralNetworkScene.tsx
+Názov:        NeuralNetworkScene
+Popis:        Hlavná 3D scéna simulácie neurónovej siete.
+============================================================
+*/
+\end{lstlisting}
+
+\subsubsection{DataFlowParticles}
+\paragraph{Funkcia}
+Častice putujú po aktívnych spojeniach. Rýchlosť a veľkosť závisí
+od váhy a aktivácie zdrojového neurónu.
+
+\begin{lstlisting}[language=TypeScript, caption={DataFlowParticles}, label={lst:scene-particles}]
+const DataFlowParticles = ({ neurons }: { neurons: NeuronType[] }) => {
+  const activeConnections = useMemo(() => {
+    return neurons.flatMap(n => n.connections.map(c => ({
+      ...c,
+      start: n.position,
+      end: neurons.find(target => target.id === c.to)?.position,
+      sourceActivation: n.activation,
+    }))).filter(c => c.end);
+  }, [neurons]);
+  ...
+};
+\end{lstlisting}
+
+\subsubsection{GradientBackground}
+\paragraph{Funkcia}
+Pozadie je shaderMaterial s jemným vertikálnym a radiálnym gradientom.
+
+\begin{lstlisting}[language=TypeScript, caption={GradientBackground}, label={lst:scene-gradient}]
+const GradientBackground = () => {
+  const { camera } = useThree();
+  const planeRef = useRef<THREE.Mesh>(null);
+  useFrame(() => {
+    if (!planeRef.current) return;
+    camera.getWorldDirection(dir);
+    planeRef.current.position.copy(camera.position).addScaledVector(dir, 60);
+    planeRef.current.quaternion.copy(camera.quaternion);
+  });
+  return (
+    <mesh ref={planeRef} scale={140} frustumCulled={false} renderOrder={-10}>
+      <planeGeometry args={[1, 1]} />
+      <shaderMaterial ... />
+    </mesh>
+  );
+};
+\end{lstlisting}
+
+\subsubsection{CameraTracker a ScreenReference}
+\paragraph{Funkcia}
+\texttt{CameraTracker} sleduje yaw/pitch/distance kamery a posiela ich do HUD.
+\texttt{ScreenReference} zobrazí orientačnú kocku a tlačidlo reset.
+
+\begin{lstlisting}[language=TypeScript, caption={CameraTracker + HUD}, label={lst:scene-camera}]
+const CameraTracker = ({ onChange }: { onChange: (data: HudData) => void }) => {
+  const { camera } = useThree();
+  useFrame(() => {
+    const pos = camera.position;
+    const yawDisplay = Math.atan2(pos.x, pos.z) * THREE.MathUtils.RAD2DEG;
+    const pitch = Math.atan2(pos.y, Math.sqrt(pos.x * pos.x + pos.z * pos.z)) * THREE.MathUtils.RAD2DEG;
+    onChange({ yawDisplay, yawContinuous, pitch, distance: pos.length() });
+  });
+  return null;
+};
+\end{lstlisting}
+
+\subsubsection{Neurón a spojenia}
+\paragraph{Funkcia}
+\texttt{Neuron} je pulzujúca sféra s glow efektmi. \texttt{Connection}
+vykresľuje \texttt{THREE.Line} medzi neurónmi a upravuje opacity podľa aktivácie.
+
+\begin{lstlisting}[language=TypeScript, caption={Neuron (pulz a glow)}, label={lst:scene-neuron}]
+useFrame((state) => {
+  const pulse = 1 + neuron.activation * 0.6;
+  meshRef.current.scale.setScalar(pulse * 0.25 * highlightBoost);
+  material.color.copy(targetColor);
+  material.emissive.copy(targetColor);
+});
+\end{lstlisting}
+
+\begin{lstlisting}[language=TypeScript, caption={Connection (line opacity + color)}, label={lst:scene-connection}]
+useFrame((state) => {
+  const avgActivation = (fromNeuron.activation + toNeuron.activation) / 2;
+  const pulse = Math.sin(state.clock.elapsedTime * 8) * 0.5 + 0.5;
+  material.opacity = 0.3 + avgActivation * connection.strength * 0.5 + pulse * avgActivation * 0.4;
+  const baseColor = connection.weight > 0 ? new THREE.Color("#00D4FF") : new THREE.Color("#B565FF");
+  material.color.copy(baseColor.multiplyScalar(1 + avgActivation * 0.5));
+});
+\end{lstlisting}
+
+\subsection{Hlavná scéna}
+\paragraph{Funkcia}
+\texttt{NeuralNetworkScene} skladá svetlá, hviezdy, sparkles, neuróny,
+spojenia, častice a \texttt{OrbitControls}.
+
+\begin{lstlisting}[language=TypeScript, caption={Canvas a obsah scény}, label={lst:scene-canvas}]
+<Canvas gl={{ antialias: true, powerPreference: "high-performance", alpha: false }} dpr={[1, 2]}>
+  <color attach="background" args={["#050510"]} />
+  <PerspectiveCamera ref={cameraRef} makeDefault position={[0, 0, 15]} fov={60} />
+  <GradientBackground />
+  <ReferenceGrid />
+  <ambientLight intensity={0.7} color="#99BBFF" />
+  <pointLight position={[10, 10, 10]} intensity={3.5} color="#00D4FF" />
+  <Stars radius={100} depth={50} count={800} factor={2} fade />
+  {neurons.map(neuron => <Neuron ... />)}
+  {allConnections.map(conn => <Connection ... />)}
+  <DataFlowParticles neurons={neurons} />
+  <OrbitControls ref={controlsRef} enablePan enableZoom enableRotate />
+</Canvas>
+\end{lstlisting}
+
+\section{UI komponenty (src/components/ui)}
+
+\subsection{ControlPanel}
+\paragraph{Funkcia}
+Panel pre pridávanie neurónov, bulk pridanie, spustenie/stop tréningu a reset.
+Režim \texttt{mode} prepína tlačidlá Start/Stop a stavový indikátor.
+
+\begin{lstlisting}[language=JavaScript, caption={ControlPanel -- rozhranie}, label={lst:ui-controlpanel}]
+interface ControlPanelProps {
+  mode: SimulationMode;
+  onAddNeuron: (type: "input" | "hidden" | "output") => void;
+  onAddMultiple?: (count: number, type: "input" | "hidden" | "output") => void;
+  onStartTraining: () => void;
+  onStopTraining: () => void;
+  onReset: () => void;
+  disabled?: boolean;
+}
+\end{lstlisting}
+
+\subsection{AlgorithmPanel}
+\paragraph{Funkcia}
+Zobrazuje zoznam algoritmov z \texttt{ALGORITHMS}, umožňuje výber a spustenie.
+
+\begin{lstlisting}[language=TypeScript, caption={AlgorithmPanel -- výber algoritmu}, label={lst:ui-algopanel}]
+const [selectedAlgorithm, setSelectedAlgorithm] = useState<AlgorithmType | null>(null);
+const handleRun = () => { if (selectedAlgorithm) onRunAlgorithm(selectedAlgorithm); };
+\end{lstlisting}
+
+\subsection{AlgorithmInfoOverlay}
+\paragraph{Funkcia}
+Overlay v 3D scéne s priebehom algoritmu, stavom a legendou.
+
+\begin{lstlisting}[language=TypeScript, caption={Fázy overlayu}, label={lst:ui-overlay}]
+useEffect(() => {
+  if (!isRunning) setPhase('preparing');
+  else if (neuronsCreated < totalNeurons) setPhase('creating');
+  else if (progress < 0.99) setPhase('running');
+  else setPhase('complete');
+}, [isRunning, neuronsCreated, totalNeurons, progress]);
+\end{lstlisting}
+
+\subsection{StatsDisplay}
+\paragraph{Funkcia}
+Zobrazuje základné metriky, progress bary a upozornenia (overfitting/underfitting).
+
+\begin{lstlisting}[language=TypeScript, caption={StatsDisplay -- progress bary}, label={lst:ui-stats}]
+const ProgressBar = ({ value, color }: { value: number; color: string }) => (
+  <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+    <div className={`h-full ${color}`} style={{ width: `${value * 100}%` }} />
+  </div>
+);
+\end{lstlisting}
+
+\subsection{NeuronReferencePanel}
+\paragraph{Funkcia}
+Panel zobrazuje ``live'' najaktívnejší neurón a manuálne pripnutý neurón
+so štatistikami (health, trainingCount, connections).
+
+\begin{lstlisting}[language=TypeScript, caption={NeuronReferencePanel -- live focus}, label={lst:ui-reference}]
+const selectedNeuron = neurons.find((n) => n.id === selectedNeuronId);
+{liveFocus ? (
+  <button onClick={() => onSelectNeuron(liveFocus.id)}>Pin live</button>
+) : (
+  <p>Spusti tréning alebo algoritmus...</p>
+)}
+\end{lstlisting}
+
+\section{Odporúčané oddeľovanie blokov v zdrojových textoch}
+
+\begin{lstlisting}[language=JavaScript, caption={Struktúra blokov pre Simulation moduly}, label={lst:sim-separators}]
+/* ============================================================
+   1) Importy + typy
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   2) Pomocné funkcie / konštanty
+   ------------------------------------------------------------ */
+
+/* ============================================================
+   3) Hlavné komponenty / hooky
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   4) Side-effects (useEffect / intervaly / cleanup)
+   ------------------------------------------------------------ */
+
+/* ============================================================
+   5) Exporty
+   ============================================================ */
+\end{lstlisting}
+
+\end{document}

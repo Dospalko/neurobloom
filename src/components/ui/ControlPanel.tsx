@@ -25,12 +25,12 @@ const ControlPanel = ({
 
   return (
     <div className="glass-effect rounded-2xl p-5 space-y-5 border border-white/10">
-      <h3 className="text-lg font-bold text-white">Control Panel</h3>
+      <h3 className="text-lg font-bold text-white">Ovládací Panel</h3>
       
       {/* Bulk pridávanie neurónov */}
       {onAddMultiple && (
         <div className="space-y-2">
-          <p className="text-xs text-gray-400 uppercase tracking-wide">Quick Add</p>
+          <p className="text-xs text-gray-400 uppercase tracking-wide">Rýchle Pridanie</p>
           
           <div className="flex gap-2">
             <input
@@ -47,9 +47,9 @@ const ControlPanel = ({
               onChange={(e) => setSelectedType(e.target.value as any)}
               className="flex-1 px-3 py-2 bg-white/5 border border-white/30 rounded-lg text-white focus:outline-none focus:border-neuro-blue focus:bg-white/10"
             >
-              <option value="input" className="bg-neuro-dark">Input</option>
-              <option value="hidden" className="bg-neuro-dark">Hidden</option>
-              <option value="output" className="bg-neuro-dark">Output</option>
+              <option value="input" className="bg-neuro-dark">Vstup</option>
+              <option value="hidden" className="bg-neuro-dark">Skrytý</option>
+              <option value="output" className="bg-neuro-dark">Výstup</option>
             </select>
             
             <button
@@ -65,7 +65,7 @@ const ControlPanel = ({
       
       {/* Pridávanie neurónov */}
       <div className="space-y-2">
-        <p className="text-xs text-gray-400 uppercase tracking-wide">Add Neuron</p>
+        <p className="text-xs text-gray-400 uppercase tracking-wide">Pridať Neurón</p>
         <div className="grid grid-cols-3 gap-2">
           <button
             onClick={() => onAddNeuron("input")}
@@ -110,7 +110,7 @@ const ControlPanel = ({
       
       {/* Trénovanie */}
       <div className="space-y-2">
-        <p className="text-xs text-gray-400 uppercase tracking-wide">Training</p>
+        <p className="text-xs text-gray-400 uppercase tracking-wide">Tréning</p>
         <div className="grid grid-cols-2 gap-2">
           {mode !== "training" ? (
             <button
@@ -121,7 +121,7 @@ const ControlPanel = ({
               <div className="absolute inset-0 bg-neuro-green/0 group-hover:bg-neuro-green/10 transition-all duration-300" />
               <div className="relative flex items-center gap-2">
                 <div className="w-0 h-0 border-t-4 border-t-transparent border-l-6 border-l-neuro-green border-b-4 border-b-transparent" />
-                <span className="text-white">Initialize Training</span>
+                <span className="text-white">Inicializovať Tréning</span>
               </div>
             </button>
           ) : (
@@ -135,7 +135,7 @@ const ControlPanel = ({
                   <div className="w-1 h-3 bg-red-500" />
                   <div className="w-1 h-3 bg-red-500" />
                 </div>
-                <span className="text-white">Stop Training</span>
+                <span className="text-white">Zastaviť Tréning</span>
               </div>
             </button>
           )}
@@ -154,7 +154,7 @@ const ControlPanel = ({
             <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none">
               <path d="M8 2v4M8 2C5.8 2 4 3.8 4 6c0 1.5.8 2.8 2 3.5M8 2c2.2 0 4 1.8 4 4 0 1.5-.8 2.8-2 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
-            <span>Reset Network</span>
+            <span>Reštartovať Sieť</span>
           </div>
         </button>
       </div>

@@ -40,15 +40,15 @@ const FeatureCard = ({ title, description, path, color, delay = 0 }: FeatureCard
       className={`group relative p-8 flex flex-col items-center text-center rounded-2xl border bg-black/40 backdrop-blur-md cursor-pointer overflow-hidden transition-all duration-300 ${colorClasses[color]}`}
       onClick={() => navigate(path)}
     >
-      {/* Dynamic Background Gradient */}
+      {/* Dynamické pozadie (Gradient) */}
       <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-white/5 to-transparent z-0`} />
       
-      {/* Background Glow Blob */}
+      {/* Žiara na pozadí (Blob) */}
       <div className={`absolute -right-10 -top-10 w-40 h-40 rounded-full blur-3xl opacity-20 transition-all duration-500 group-hover:opacity-40 group-hover:scale-150 ${bgClasses[color].replace('bg-', 'bg-')} z-0`} />
       
      
 
-      {/* Content */}
+      {/* Obsah */}
       <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-white transition-colors relative z-10 w-full">
         {title}
       </h3>
@@ -56,7 +56,7 @@ const FeatureCard = ({ title, description, path, color, delay = 0 }: FeatureCard
         {description}
       </p>
 
-      {/* Interactive Arrow */}
+      {/* Interaktívna šípka */}
       <motion.div 
         className={`absolute bottom-6 right-6 ${textClasses[color]}`}
         initial={{ opacity: 0, x: -10 }}

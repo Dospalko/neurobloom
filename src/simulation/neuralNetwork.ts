@@ -63,25 +63,25 @@ export const activateNeuron = (
   return sigmoid(sum);
 };
 
-// Hebbian Learning: Neurons that fire together, wire together
-// Oja's Rule (stabilized Hebbian): dw = alpha * (y * (x - y * w))
+// Hebbovské učenie: Neuróny, ktoré sa aktivujú spolu, sa prepoja
+// Ojaovo pravidlo (stabilizované Hebbovské učenie): dw = alpha * (y * (x - y * w))
 export const updateConnectionWeight = (
   connection: Connection,
   sourceActivation: number,
   targetActivation: number,
   learningRate: number
 ): number => {
-  // Standard Hebbian: delta = rate * source * target
-  // But this grows indefinitely. We use a simplified Oja's rule or decay.
+  // Štandardné Hebbovské: delta = rýchlosť * zdroj * cieľ
+  // Ale toto rastie donekonečna. Používame zjednodušené Ojaovo pravidlo alebo rozpad.
   
-  // Let's use simple Hebbian with decay to keep it interesting but bounded
+  // Použime jednoduché Hebbovské učenie s rozpadom, aby to bolo zaujímavé, ale obmedzené
   const hebbianTerm = sourceActivation * targetActivation;
-  const decayTerm = 0.05 * connection.weight * targetActivation * targetActivation; // Active decay
+  const decayTerm = 0.05 * connection.weight * targetActivation * targetActivation; // Aktívny rozpad
   
   const delta = learningRate * (hebbianTerm - decayTerm);
   
   const newWeight = connection.weight + delta;
-  return Math.max(-1, Math.min(1, newWeight)); // clamp
+  return Math.max(-1, Math.min(1, newWeight)); // orezanie
 };
 
 // Výpočet zdravia neurónu na základe veku a tréningu
@@ -91,7 +91,7 @@ export const calculateNeuronHealth = (neuron: Neuron): number => {
   return Math.min(1, (ageDecay + overtrainingPenalty) / 2 * neuron.health);
 };
 
-// Detekcia overtrain/undertrain
+// Detekcia pretrénovania/podtrénovania
 export const detectTrainingIssues = (
   trainingAccuracy: number,
   validationAccuracy: number,
@@ -99,8 +99,8 @@ export const detectTrainingIssues = (
 ): { isOverfitted: boolean; isUnderfitted: boolean } => {
   const gap = trainingAccuracy - validationAccuracy;
   return {
-    isOverfitted: gap > 0.15 && epochs > 100, // Veľký rozdiel = overfitting
-    isUnderfitted: trainingAccuracy < 0.7 && epochs > 50, // Nízka presnosť = underfitting
+    isOverfitted: gap > 0.15 && epochs > 100, // Veľký rozdiel = pretrénovanie
+    isUnderfitted: trainingAccuracy < 0.7 && epochs > 50, // Nízka presnosť = podtrénovanie
   };
 };
 

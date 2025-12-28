@@ -6,7 +6,7 @@ import { NeuralNetwork } from "../../algorithms/NeuralNetwork";
 
 interface PlaygroundSceneProps {
   network: NeuralNetwork | null;
-  epoch: number; // Trigger updates
+  epoch: number; // Spustenie aktualizácií
   featureLabels: string[];
   scenarioLabel?: string;
   onNodeHover?: (node: { layer: number; index: number; x: number; y: number } | null) => void;
@@ -16,8 +16,8 @@ type NodePos = { id: string; pos: THREE.Vector3; layer: number; index: number; l
 type Connection = { id: string; from: NodePos; to: NodePos; weight: number; sourceOutput: number; destOutput: number; label: string };
 
 const nodeColor = (activation: number) => {
-  const base = new THREE.Color("#00ccff"); // Cyan
-  const hot = new THREE.Color("#ff9900");  // Orange
+  const base = new THREE.Color("#00ccff"); // Svetlomodrá
+  const hot = new THREE.Color("#ff9900");  // Oranžová
   return base.clone().lerp(hot, activation);
 };
 
@@ -39,14 +39,14 @@ const SceneInner = ({ network, epoch, featureLabels, scenarioLabel, onNodeHover 
       .replace(/₉/g, "9");
   }, []);
 
-  // 1. Calculate Node Positions based on Network Structure
+  // 1. Vypočítať pozície uzlov na základe štruktúry siete
   const nodes = useMemo<NodePos[]>(() => {
     if (!network?.layers?.length) return [];
 
     const spacingX = 4.0;
     const positions: NodePos[] = [];
 
-    // We'll visualize the layers present in the network object.
+    // Vizualizujeme vrstvy prítomné v objekte siete.
     const layers = network.layers;
     const maxLayerCount = Math.max(...layers.map(l => l.length));
     
@@ -70,17 +70,17 @@ const SceneInner = ({ network, epoch, featureLabels, scenarioLabel, onNodeHover 
 
   const [connections, setConnections] = useState<Connection[]>([]);
 
-  // 2. Update Connections (Weights) on Epoch Change
+  // 2. Aktualizovať spojenia (váhy) pri zmene epochy
   useEffect(() => {
     if (!network || nodes.length === 0) return;
 
     const next: Connection[] = [];
 
-    // Build a map from node id to position for quick lookup
+    // Vytvoriť mapu od ID uzla k pozícii pre rýchle vyhľadávanie
     const posMap = new Map<string, NodePos>();
     nodes.forEach((n) => posMap.set(n.id, n));
 
-    // Use network.links (source/dest) so we respect the real connectivity
+    // Použiť network.links (zdroj/cieľ), aby sme rešpektovali skutočnú konektivitu
     network.links.forEach((link) => {
       const from = posMap.get(link.source.id);
       const to = posMap.get(link.dest.id);
@@ -104,15 +104,15 @@ const SceneInner = ({ network, epoch, featureLabels, scenarioLabel, onNodeHover 
 
   return (
     <>
-      {/* Connections */}
+      {/* Spojenia */}
       {connections.map((conn, idx) => {
         const weightAbs = Math.abs(conn.weight);
         const baseColor = new THREE.Color(conn.weight >= 0 ? "#00ccff" : "#ff9900");
-        // widen contrast: weak = darker/thinner, strong = brighter/thicker
+        // rozšíriť kontrast: slabé = tmavšie/tenšie, silné = jasnejšie/hrubšie
         const strongMix = Math.min(0.45, weightAbs * 0.6);
         const color = baseColor.clone().lerp(new THREE.Color("#ffffff"), strongMix).getStyle();
 
-        const weightWidth = 0.2 + weightAbs * 4; // bigger spread
+        const weightWidth = 0.2 + weightAbs * 4; // väčší rozptyl
         const lineWidth = Math.min(8, Math.max(1, weightWidth));
         const opacity = Math.min(0.95, 0.15 + weightAbs * 0.7);
         const midPoint = conn.from.pos
@@ -147,19 +147,19 @@ const SceneInner = ({ network, epoch, featureLabels, scenarioLabel, onNodeHover 
         );
       })}
 
-      {/* Nodes */}
+      {/* Uzly */}
       {nodes.map((node) => {
-        // Visualize Bias or Activation?
-        // We don't easily have activation for every node unless we store it.
-        // Let's visualize Bias for now as the "color" of the node, or just static.
-        // Or if network has `output` property on nodes, use that!
+        // Vizualizovať Bias alebo Aktiváciu?
+        // Nemáme ľahko dostupnú aktiváciu pre každý uzol, pokiaľ ju neuložíme.
+        // Zatiaľ vizualizujme Bias ako "farbu" uzla, alebo len staticky.
+        // Alebo ak má sieť vlastnosť `output` na uzloch, použite to!
         const neuron = network?.layers[node.layer][node.index];
-        const val = neuron ? Math.tanh(neuron.output) : 0; // Use output if available
+        const val = neuron ? Math.tanh(neuron.output) : 0; // Použiť výstup, ak je k dispozícii
         
-        // If it's the first layer (input), we might not have 'output' if it's just a placeholder.
-        // But let's assume we do or it's 0.
+        // Ak je to prvá vrstva (vstup), nemusíme mať 'output', ak je to len zástupný znak.
+        // Ale predpokladajme, že máme alebo je to 0.
         
-        const color = nodeColor(val * 0.5 + 0.5); // Map -1..1 to 0..1
+        const color = nodeColor(val * 0.5 + 0.5); // Mapovať -1..1 na 0..1
         
         return (
           <group
@@ -186,7 +186,7 @@ const SceneInner = ({ network, epoch, featureLabels, scenarioLabel, onNodeHover 
                 roughness={0.2}
               />
             </mesh>
-            {/* Halo */}
+            {/* Zážiara */}
             <mesh>
               <sphereGeometry args={[0.45, 16, 16]} />
               <meshBasicMaterial color={color} transparent opacity={0.1 + Math.abs(val) * 0.2} depthWrite={false} />
